@@ -17,7 +17,7 @@
 #include "utils/vutils.h"
 
 class PegMarkdownHighlighter;
-class VCodeBlockHighlightHelper;
+class VCodeBlockHighlightHelper2;
 class VDocument;
 class VPreviewManager;
 class VCopyTextAsHtmlDialog;
@@ -339,7 +339,7 @@ private:
 
     PegMarkdownHighlighter *m_pegHighlighter;
 
-    VCodeBlockHighlightHelper *m_cbHighlighter;
+    VCodeBlockHighlightHelper2 *m_cbHighlighter;
 
     VPreviewManager *m_previewMgr;
 

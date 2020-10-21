@@ -4,18 +4,19 @@
 #include <QString>
 #include <QPointer>
 #include <QSharedPointer>
+#include <QSet>
+
 #include "vedittab.h"
 #include "vconstants.h"
 #include "vmarkdownconverter.h"
 #include "vconfigmanager.h"
-#include "vimagehosting.h"
 
 class VWebView;
 class VDocument;
 class VMdEditor;
 class VInsertSelector;
 class QTimer;
-class QWebEngineDownloadItem;
+// class QWebEngineDownloadItem;
 class QSplitter;
 class VLivePreviewHelper;
 class VMathJaxInplacePreviewHelper;
@@ -26,6 +27,8 @@ class VMdTab : public VEditTab
 
 public:
     VMdTab(VFile *p_file, VEditArea *p_editArea, OpenFileMode p_mode, QWidget *p_parent = 0);
+
+    ~VMdTab();
 
     // Close current tab.
     // @p_forced: if true, discard the changes.
@@ -71,9 +74,6 @@ public:
     void clearSearchedWordHighlight() Q_DECL_OVERRIDE;
 
     VWebView *getWebViewer() const;
-    
-    // Get the markdown editor. If not init yet, init and return it.
-    VMdEditor *getEditor();
 
     VMdEditor *getEditor() const;
 
@@ -157,25 +157,13 @@ private slots:
     void restoreFromTabInfo();
 
     // Handle download request from web page.
-    void handleDownloadRequested(QWebEngineDownloadItem *p_item);
+    // void handleDownloadRequested(QWebEngineDownloadItem *p_item);
 
     // Handle save page request.
     void handleSavePageRequested();
 
     // Selection changed in web.
     void handleWebSelectionChanged();
-
-    // Process the image upload request to GitHub.
-    void handleUploadImageToGithubRequested();
-
-    // Process the image upload request to Gitee.
-    void handleUploadImageToGiteeRequested();
-
-    // Process image upload request to wechat.
-    void handleUploadImageToWechatRequested();
-
-    // Process image upload request to tencent.
-    void handleUploadImageToTencentRequested();
 
 private:
     enum TabReady { None = 0, ReadMode = 0x1, EditMode = 0x2 };
@@ -229,6 +217,9 @@ private:
     // Focus the proper child widget.
     void focusChild() Q_DECL_OVERRIDE;
 
+    // Get the markdown editor. If not init yet, init and return it.
+    VMdEditor *getEditor();
+
     // Restore from @p_fino.
     // Return true if succeed.
     bool restoreFromTabInfo(const VEditTabInfo &p_info) Q_DECL_OVERRIDE;
@@ -259,8 +250,12 @@ private:
 
     bool previewExpanded() const;
 
+    static quint16 getNextPort();
+    static void releasePort(quint16 p_port);
+
     VMdEditor *m_editor;
     VWebView *m_webViewer;
+    quint16 m_port;
     VDocument *m_document;
     MarkdownConverterType m_mdConType;
 
@@ -291,10 +286,7 @@ private:
 
     int m_documentID;
 
-    VGithubImageHosting *vGithubImageHosting;
-    VGiteeImageHosting *vGiteeImageHosting;
-    VWechatImageHosting *vWechatImageHosting;
-    VTencentImageHosting * vTencentImageHosting;
+    static QSet<quint16> s_usedPorts;
 };
 
 inline VMdEditor *VMdTab::getEditor()

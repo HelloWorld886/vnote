@@ -1,7 +1,7 @@
 #include "vtipsdialog.h"
 
 #include <QtWidgets>
-#include <QWebEngineView>
+#include <QWebView>
 
 #include "vconfigmanager.h"
 #include "vmarkdownconverter.h"
@@ -23,7 +23,7 @@ VTipsDialog::VTipsDialog(const QString &p_tipFile,
 
 void VTipsDialog::setupUI(const QString &p_actionText)
 {
-    m_viewer = VUtils::getWebEngineView(g_config->getBaseBackground());
+    m_viewer = VUtils::getWebView(g_config->getBaseBackground());
     m_viewer->setContextMenuPolicy(Qt::NoContextMenu);
 
     m_btnBox = new QDialogButtonBox(QDialogButtonBox::Ok);

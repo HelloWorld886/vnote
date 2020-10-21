@@ -3,7 +3,8 @@
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QPainter>
-#include <QWebEnginePage>
+#include <QWebPage>
+#include <QWebFrame>
 
 #include "vmainwindow.h"
 #include "vdirectorytree.h"
@@ -19,12 +20,10 @@
 #include "vcaptain.h"
 #include "vedittab.h"
 #include "vwebview.h"
-#include "vexporter.h"
 #include "vmdtab.h"
 #include "vvimindicator.h"
 #include "vvimcmdlineedit.h"
 #include "vtabindicator.h"
-#include "dialog/vupdater.h"
 #include "vorphanfile.h"
 #include "dialog/vorphanfileinfodialog.h"
 #include "vsingleinstanceguard.h"
@@ -39,7 +38,6 @@
 #include "utils/viconutils.h"
 #include "dialog/vtipsdialog.h"
 #include "vcart.h"
-#include "dialog/vexportdialog.h"
 #include "vsearcher.h"
 #include "vuniversalentry.h"
 #include "vsearchue.h"
@@ -52,7 +50,8 @@
 #include "vlistue.h"
 #include "vtagexplorer.h"
 #include "vmdeditor.h"
-#include "utils/vSync.h"
+#include "vexporter.h"
+#include "dialog/vexportdialog.h"
 
 extern VConfigManager *g_config;
 
@@ -114,8 +113,6 @@ VMainWindow::VMainWindow(VSingleInstanceGuard *p_guard, QWidget *p_parent)
 
     initDockWindows();
 
-    initSync();
-
     int state = g_config->getPanelViewState();
     if (state < 0 || state >= (int)PanelViewState::Invalid) {
         state = (int)PanelViewState::VerticalMode;
@@ -134,9 +131,6 @@ VMainWindow::VMainWindow(VSingleInstanceGuard *p_guard, QWidget *p_parent)
     initUpdateTimer();
 
     registerCaptainAndNavigationTargets();
-#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
-    QApplication::setQuitOnLastWindowClosed(false);
-#endif
 }
 
 void VMainWindow::initSharedMemoryWatcher()
@@ -775,7 +769,7 @@ QToolBar *VMainWindow::initFileToolBar(QSize p_iconSize)
                 m_editArea->readFile(true);
             });
 
-    updateEditReadAct(NULL);
+    updateEditReadAct(nullptr);
 
     saveNoteAct = new QAction(VIconUtils::toolButtonIcon(":/resources/icons/save_note.svg"),
                               tr("Save"), this);
@@ -816,9 +810,6 @@ void VMainWindow::initMenuBar()
     initEditMenu();
     initViewMenu();
     initMarkdownMenu();
-#if defined(Q_OS_WIN)
-    initSyncMenu();
-#endif
     initHelpMenu();
 
     setMenuBarVisible(g_config->getMenuBarChecked());
@@ -870,6 +861,7 @@ void VMainWindow::initHelpMenu()
                 QDesktopServices::openUrl(url);
             });
 
+    /*
     QAction *updateAct = new QAction(tr("Check For &Updates"), this);
     updateAct->setToolTip(tr("Check for updates of VNote"));
     connect(updateAct, &QAction::triggered,
@@ -877,6 +869,7 @@ void VMainWindow::initHelpMenu()
                 VUpdater updater(this);
                 updater.exec();
             });
+    */
 
     QAction *starAct = new QAction(tr("Star VNote on &GitHub"), this);
     starAct->setToolTip(tr("Give a star to VNote on GitHub project"));
@@ -910,7 +903,7 @@ void VMainWindow::initHelpMenu()
     helpMenu->addAction(mdGuideAct);
     helpMenu->addAction(docAct);
     helpMenu->addAction(donateAct);
-    helpMenu->addAction(updateAct);
+    // helpMenu->addAction(updateAct);
     helpMenu->addAction(starAct);
     helpMenu->addAction(feedbackAct);
 
@@ -996,73 +989,6 @@ void VMainWindow::initMarkdownMenu()
     previewWidthAct->setChecked(g_config->getEnablePreviewImageConstraint());
 }
 
-void VMainWindow::initSyncMenu()
-{
-    m_syncMenu = menuBar()->addMenu(tr("Git &Sync"));
-    m_syncMenu->setToolTipsVisible(true);
-    QAction* uploadAction = new QAction(tr("&Upload"), this);
-    uploadAction->setToolTip(tr("Upload notes to Git repo"));
-    connect(uploadAction, &QAction::triggered, this, &VMainWindow::upload);
-    m_syncMenu->addAction(uploadAction);
-
-    QAction* downloadAction = new QAction(tr("&Download"), this);
-    downloadAction->setToolTip(tr("Download notes from Git repo"));
-    connect(downloadAction, &QAction::triggered, this, &VMainWindow::download);
-    m_syncMenu->addAction(downloadAction);
-}
-
-void VMainWindow::upload()
-{
-    QVector<VNotebook*>& noteBooks = vnote->getNotebooks();
-    for (QVector<VNotebook*>::iterator i = noteBooks.begin(); i < noteBooks.end(); i++)
-    {
-        QString notebookDir = (*i)->getPath();
-        QString notebookName = (*i)->getName();
-        if ((*i)->isOpened())
-        {
-            qDebug() << "notebook name: " << notebookName << "notebook path: " << notebookDir;
-            int ret = VUtils::showMessage(QMessageBox::Information, tr("Information"),
-                                          tr("Are you sure to close opened notes"),
-                                          tr("VNote will close all the opened notes before upload."),
-                                          QMessageBox::Ok | QMessageBox::Cancel,
-                                          QMessageBox::Ok,
-                                          this);
-            switch (ret)
-            {
-            case QMessageBox::Ok:
-                this->m_editArea->closeAllFiles(true);
-                break;
-
-            case QMessageBox::Cancel:
-                return;
-
-            default:
-                return;
-            }
-            m_git->setDir(notebookDir);
-            m_git->upload();
-            break;
-        }
-    }
-}
-
-void VMainWindow::download()
-{
-    QVector<VNotebook *> &noteBooks = vnote->getNotebooks();
-    for (QVector<VNotebook *>::iterator i = noteBooks.begin(); i < noteBooks.end(); i++)
-    {
-        QString notebookDir = (*i)->getPath();
-        QString notebookName = (*i)->getName();
-        if ((*i)->isOpened())
-        {
-            qDebug() << "notebook name: " << notebookName << "notebook path: " << notebookDir;
-            m_git->setDir(notebookDir);
-            m_git->download();
-            break;
-        }
-    }
-}
-
 void VMainWindow::initViewMenu()
 {
     m_viewMenu = menuBar()->addMenu(tr("&View"));
@@ -1126,7 +1052,6 @@ void VMainWindow::initFileMenu()
 
     fileMenu->addSeparator();
 
-    // Export as PDF.
     m_exportAct = new QAction(tr("E&xport"), this);
     m_exportAct->setToolTip(tr("Export notes"));
     VUtils::fixTextWithCaptainShortcut(m_exportAct, "Export");
@@ -1545,7 +1470,7 @@ void VMainWindow::aboutMessage()
 {
     QString info = tr("VNote");
     info += "<br/>";
-    info += tr("Version: %1").arg(VConfigManager::c_version);
+    info += tr("Version: %1").arg(VConfigManager::c_version) + " (for Loongson)";
     info += "<br/>";
     info += tr("Author: Le Tan (tamlok)");
     info += "<br/><br/>";
@@ -1788,6 +1713,8 @@ void VMainWindow::initMarkdownExtensionMenu(QMenu *p_menu)
     mathjaxAct->setChecked(g_config->getEnableMathjax());
     connect(mathjaxAct, &QAction::triggered,
             this, &VMainWindow::enableMathjax);
+    mathjaxAct->setChecked(false);
+    mathjaxAct->setEnabled(false);
     optMenu->addAction(mathjaxAct);
 
     QAction *wavedromAct = new QAction(tr("&WaveDrom"), optMenu);
@@ -2156,7 +2083,7 @@ void VMainWindow::updateActionsStateFromTab(const VEditTab *p_tab)
                       && file->getType() == FileType::Orphan
                       && dynamic_cast<const VOrphanFile *>(file)->isSystemFile();
 
-    m_printAct->setEnabled(file && file->getDocType() == DocType::Markdown);
+	m_printAct->setEnabled(file && file->getDocType() == DocType::Markdown);
 
     updateEditReadAct(p_tab);
 
@@ -2327,10 +2254,7 @@ void VMainWindow::closeEvent(QCloseEvent *event)
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
     // Do not support minimized to tray on macOS.
-    if (!isExit) {
-        event->accept();
-        return;
-    }
+    isExit = true;
 #endif
 
     if (!isExit && g_config->getMinimizeToStystemTray() == -1) {
@@ -2670,15 +2594,11 @@ void VMainWindow::printNote()
     }
 
     if (dialog.exec() == QDialog::Accepted) {
-        webView->page()->print(m_printer, [this](bool p_succ) {
-                    qDebug() << "print web page callback" << p_succ;
-                    delete m_printer;
-                    m_printer = NULL;
-                });
-    } else {
-        delete m_printer;
-        m_printer = NULL;
+        webView->print(m_printer);
     }
+
+	delete m_printer;
+	m_printer = NULL;
 }
 
 QAction *VMainWindow::newAction(const QIcon &p_icon,
@@ -2826,11 +2746,9 @@ void VMainWindow::initTrayIcon()
 
     connect(m_trayIcon, &QSystemTrayIcon::activated,
             this, [this](QSystemTrayIcon::ActivationReason p_reason){
-#if !defined(Q_OS_MACOS) && !defined(Q_OS_MAC)
                 if (p_reason == QSystemTrayIcon::Trigger) {
                     this->showMainWindow();
                 }
-#endif
             });
 
     m_trayIcon->show();
@@ -3689,11 +3607,11 @@ void VMainWindow::collectUserStat() const
 
         qDebug() << "send user track" << QDate::currentDate();
 
-        QWebEnginePage *page = new QWebEnginePage;
+        QWebPage *page = new QWebPage;
 
         QString url = QString("https://tamlok.github.io/user_track/vnote/vnote_%1.html").arg(VConfigManager::c_version);
-        page->load(QUrl(url));
-        connect(page, &QWebEnginePage::loadFinished,
+        page->mainFrame()->load(QUrl(url));
+        connect(page, &QWebPage::loadFinished,
                 this, [page](bool) {
                     VUtils::sleepWait(2000);
                     page->deleteLater();
@@ -3726,24 +3644,4 @@ void VMainWindow::checkIfNeedToShowWelcomePage()
         VFile *file = vnote->getFile(docFile, true);
         m_editArea->openFile(file, OpenFileMode::Read);
     }
-}
-
-void VMainWindow::initSync()
-{
-    m_git = new VSync();
-    connect(m_git, &VSync::downloadSuccess, this, &VMainWindow::onDownloadSuccess);
-    connect(m_git, &VSync::uploadSuccess, this, &VMainWindow::onUploadSuccess);
-}
-
-void VMainWindow::onDownloadSuccess()
-{
-    if (m_dirTree)
-    {
-        m_dirTree->reloadAllFromDisk();
-    }
-}
-
-void VMainWindow::onUploadSuccess()
-{
-
 }

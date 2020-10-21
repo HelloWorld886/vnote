@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui webenginewidgets webchannel network svg printsupport
+QT       += core gui network svg printsupport webkitwidgets webchannel websockets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,8 +13,6 @@ DEFINES += QT_MESSAGELOGCONTEXT
 
 TARGET = VNote
 TEMPLATE = app
-
-CONFIG -= qtquickcompiler
 
 RC_ICONS = resources/icons/vnote.ico
 ICON = resources/icons/vnote.icns
@@ -30,8 +28,6 @@ TRANSLATIONS += translations/vnote_zh_CN.ts \
 }
 
 SOURCES += main.cpp\
-    vapplication.cpp \
-    vimagehosting.cpp \
     vmainwindow.cpp \
     vdirectorytree.cpp \
     vnote.cpp \
@@ -43,7 +39,6 @@ SOURCES += main.cpp\
     vedit.cpp \
     vdocument.cpp \
     utils/vutils.cpp \
-    vpreviewpage.cpp \
     vstyleparser.cpp \
     dialog/vnewnotebookdialog.cpp \
     vmarkdownconverter.cpp \
@@ -73,7 +68,7 @@ SOURCES += main.cpp\
     vnavigationmode.cpp \
     vorphanfile.cpp \
     vcodeblockhighlighthelper.cpp \
-    vwebview.cpp \
+    vcodeblockhighlighthelper2.cpp \
     vmdtab.cpp \
     vhtmltab.cpp \
     utils/vvim.cpp \
@@ -81,7 +76,6 @@ SOURCES += main.cpp\
     vvimindicator.cpp \
     vbuttonwithwidget.cpp \
     vtabindicator.cpp \
-    dialog/vupdater.cpp \
     dialog/vorphanfileinfodialog.cpp \
     vtextblockdata.cpp \
     utils/vpreviewutils.cpp \
@@ -126,8 +120,6 @@ SOURCES += main.cpp\
     vsimplesearchinput.cpp \
     vstyleditemdelegate.cpp \
     vtreewidget.cpp \
-    dialog/vexportdialog.cpp \
-    vexporter.cpp \
     vsearcher.cpp \
     vsearch.cpp \
     vsearchresulttree.cpp \
@@ -144,7 +136,6 @@ SOURCES += main.cpp\
     vgraphvizhelper.cpp \
     vlivepreviewhelper.cpp \
     vmathjaxpreviewhelper.cpp \
-    vmathjaxwebdocument.cpp \
     vmathjaxinplacepreviewhelper.cpp \
     vhistorylist.cpp \
     vexplorer.cpp \
@@ -166,12 +157,16 @@ SOURCES += main.cpp\
     vtablehelper.cpp \
     vtable.cpp \
     dialog/vinserttabledialog.cpp \
-    utils/vSync.cpp
+    vpreviewpage.cpp \
+    vwebview.cpp \
+    websocketclientwrapper.cpp \
+    websockettransport.cpp \
+    vmathjaxwebdocument.cpp \
+    vexporter.cpp \
+    dialog/vexportdialog.cpp
 
 HEADERS  += vmainwindow.h \
-    vapplication.h \
     vdirectorytree.h \
-    vimagehosting.h \
     vnote.h \
     vnotebook.h \
     dialog/vnewdirdialog.h \
@@ -182,7 +177,6 @@ HEADERS  += vmainwindow.h \
     vconstants.h \
     vdocument.h \
     utils/vutils.h \
-    vpreviewpage.h \
     vstyleparser.h \
     dialog/vnewnotebookdialog.h \
     vmarkdownconverter.h \
@@ -212,7 +206,7 @@ HEADERS  += vmainwindow.h \
     vnavigationmode.h \
     vorphanfile.h \
     vcodeblockhighlighthelper.h \
-    vwebview.h \
+    vcodeblockhighlighthelper2.h \
     vmdtab.h \
     vhtmltab.h \
     utils/vvim.h \
@@ -221,7 +215,6 @@ HEADERS  += vmainwindow.h \
     vbuttonwithwidget.h \
     vedittabinfo.h \
     vtabindicator.h \
-    dialog/vupdater.h \
     dialog/vorphanfileinfodialog.h \
     vtextblockdata.h \
     utils/vpreviewutils.h \
@@ -266,8 +259,6 @@ HEADERS  += vmainwindow.h \
     vsimplesearchinput.h \
     vstyleditemdelegate.h \
     vtreewidget.h \
-    dialog/vexportdialog.h \
-    vexporter.h \
     vwordcountinfo.h \
     vsearcher.h \
     vsearch.h \
@@ -288,7 +279,6 @@ HEADERS  += vmainwindow.h \
     vgraphvizhelper.h \
     vlivepreviewhelper.h \
     vmathjaxpreviewhelper.h \
-    vmathjaxwebdocument.h \
     vmathjaxinplacepreviewhelper.h \
     markdownitoption.h \
     vhistorylist.h \
@@ -315,7 +305,13 @@ HEADERS  += vmainwindow.h \
     vtablehelper.h \
     vtable.h \
     dialog/vinserttabledialog.h \
-    utils/vSync.h
+    vpreviewpage.h \
+    vwebview.h \
+    websocketclientwrapper.h \
+    websockettransport.h \
+    vmathjaxwebdocument.h \
+    vexporter.h \
+    dialog/vexportdialog.h
 
 RESOURCES += \
     vnote.qrc \

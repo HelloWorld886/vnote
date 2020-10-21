@@ -114,6 +114,10 @@ if (typeof handleMathjaxReady == 'undefined') {
     var handleMathjaxReady = function() {};
 }
 
+if (typeof VWebChannelPort == 'undefined') {
+    var VWebChannelPort = '12345';
+}
+
 // Whether highlight special blocks like puml, flowchart.
 var highlightSpecialBlocks = false;
 
@@ -176,54 +180,61 @@ var mute = function(muted) {
     g_muteScroll = muted;
 };
 
-new QWebChannel(qt.webChannelTransport,
-    function(channel) {
-        content = channel.objects.content;
+window.addEventListener('load', function() {
+    var baseUrl = 'ws://localhost:' + VWebChannelPort;
+    var socket = new WebSocket(baseUrl);
+    socket.onopen = function() {
+        console.log('WebSocket connected to ' + baseUrl);
+        new QWebChannel(socket,
+            function(channel) {
+                content = channel.objects.content;
 
-        content.requestScrollToAnchor.connect(scrollToAnchor);
+                content.requestScrollToAnchor.connect(scrollToAnchor);
 
-        content.requestMuted.connect(mute);
+                content.requestMuted.connect(mute);
 
-        if (typeof highlightText == "function") {
-            content.requestHighlightText.connect(highlightText);
-            content.noticeReadyToHighlightText();
-        }
+                if (typeof highlightText == "function") {
+                    content.requestHighlightText.connect(highlightText);
+                    content.noticeReadyToHighlightText();
+                }
 
-        if (typeof htmlToText == "function") {
-            content.requestHtmlToText.connect(htmlToText);
-        }
+                if (typeof htmlToText == "function") {
+                    content.requestHtmlToText.connect(htmlToText);
+                }
 
-        if (typeof textToHtml == "function") {
-            content.requestTextToHtml.connect(textToHtml);
-            content.noticeReadyToTextToHtml();
-        }
+                if (typeof textToHtml == "function") {
+                    content.requestTextToHtml.connect(textToHtml);
+                    content.noticeReadyToTextToHtml();
+                }
 
-        if (typeof htmlContent == "function") {
-            content.requestHtmlContent.connect(htmlContent);
-        }
+                if (typeof htmlContent == "function") {
+                    content.requestHtmlContent.connect(htmlContent);
+                }
 
-        content.plantUMLResultReady.connect(handlePlantUMLResult);
-        content.graphvizResultReady.connect(handleGraphvizResult);
+                content.plantUMLResultReady.connect(handlePlantUMLResult);
+                content.graphvizResultReady.connect(handleGraphvizResult);
 
-        content.requestPreviewEnabled.connect(setPreviewEnabled);
+                content.requestPreviewEnabled.connect(setPreviewEnabled);
 
-        content.requestPreviewCodeBlock.connect(previewCodeBlock);
+                content.requestPreviewCodeBlock.connect(previewCodeBlock);
 
-        content.requestSetPreviewContent.connect(setPreviewContent);
-        content.requestPerformSmartLivePreview.connect(performSmartLivePreview);
+                content.requestSetPreviewContent.connect(setPreviewContent);
+                content.requestPerformSmartLivePreview.connect(performSmartLivePreview);
 
-        if (typeof updateHtml == "function") {
-            updateHtml(content.html);
-            content.htmlChanged.connect(updateHtml);
-        }
+                if (typeof updateHtml == "function") {
+                    updateHtml(content.html);
+                    content.htmlChanged.connect(updateHtml);
+                }
 
-        if (typeof updateText == "function") {
-            content.textChanged.connect(updateText);
-            content.updateText();
-        }
+                if (typeof updateText == "function") {
+                    content.textChanged.connect(updateText);
+                    content.updateText();
+                }
 
-        channelInitialized = true;
-    });
+                channelInitialized = true;
+            });
+    }
+});
 
 var VHighlightedAnchorClass = 'highlighted-anchor';
 
@@ -812,7 +823,7 @@ var renderPlantUMLOneOnline = function(code) {
     ++asyncJobsCount;
     code.classList.add(plantUMLCodeClass + plantUMLIdx);
 
-    let data = { index: plantUMLIdx,
+    var data = { index: plantUMLIdx,
                  setupView: !VPreviewMode
     };
     renderPlantUMLOnline(VPlantUMLServer,
@@ -1329,7 +1340,7 @@ var listContainsRegex = function(strs, exp) {
 var StylesToInline = null;
 
 var initStylesToInline = function() {
-    StylesToInline = new Map();
+    StylesToInline = new Object();
 
     if (VStylesToInline.length == 0) {
         return;
@@ -1345,7 +1356,7 @@ var initStylesToInline = function() {
         var tags = vals[0].split(':');
         var pros = vals[1].split(':');
         for (var j = 0; j < tags.length; ++j) {
-            StylesToInline.set(tags[j].toLowerCase(), pros);
+            StylesToInline[tags[j].toLowerCase()] = pros;
         }
     }
 };
@@ -1354,9 +1365,9 @@ var initStylesToInline = function() {
 // StylesToInline need to be init before.
 var embedInlineStyles = function(ele) {
     var tagName = ele.tagName.toLowerCase();
-    var props = StylesToInline.get(tagName);
+    var props = StylesToInline[tagName];
     if (!props) {
-        props = StylesToInline.get('all');
+        props = StylesToInline['all'];
 
         if (!props) {
             return;
@@ -1512,7 +1523,7 @@ var handleGraphvizResult = function(id, timeStamp, format, result) {
         if (format == 'svg') {
             obj = document.createElement('p');
             obj.innerHTML = result;
-            setupSVGToView(obj.children[0]);
+            setupSVGToView(obj.children[0], false);
         } else {
             obj = document.createElement('img');
             obj.src = "data:image/" + format + ";base64, " + result;

@@ -23,7 +23,6 @@
 #include <QKeySequence>
 #include <QComboBox>
 #include <QStyledItemDelegate>
-#include <QWebEngineView>
 #include <QAction>
 #include <QTreeWidgetItem>
 #include <QFormLayout>
@@ -32,12 +31,13 @@
 #include <QSvgRenderer>
 #include <QPainter>
 #include <QTemporaryFile>
+#include <QWebView>
 
 #include "vorphanfile.h"
 #include "vnote.h"
 #include "vnotebook.h"
-#include "vpreviewpage.h"
 #include "pegparser.h"
+#include "vpreviewpage.h"
 #include "widgets/vcombobox.h"
 
 extern VConfigManager *g_config;
@@ -655,15 +655,16 @@ QString VUtils::generateSimpleHtmlTemplate(const QString &p_body)
     return html.replace(HtmlHolder::c_bodyHolder, p_body);
 }
 
-QString VUtils::generateHtmlTemplate(MarkdownConverterType p_conType)
+QString VUtils::generateHtmlTemplate(MarkdownConverterType p_conType, quint16 p_port)
 {
-    return generateHtmlTemplate(VNote::s_markdownTemplate, p_conType);
+    return generateHtmlTemplate(VNote::s_markdownTemplate, p_conType, p_port);
 }
 
 QString VUtils::generateHtmlTemplate(MarkdownConverterType p_conType,
                                      const QString &p_renderBg,
                                      const QString &p_renderStyle,
                                      const QString &p_renderCodeBlockStyle,
+                                     quint16 p_port,
                                      bool p_isPDF,
                                      bool p_wkhtmltopdf,
                                      bool p_addToc)
@@ -675,11 +676,12 @@ QString VUtils::generateHtmlTemplate(MarkdownConverterType p_conType,
                                                 g_config->getCodeBlockCssStyleUrl(p_renderCodeBlockStyle),
                                                 p_isPDF);
 
-    return generateHtmlTemplate(templ, p_conType, p_isPDF, p_wkhtmltopdf, p_addToc);
+    return generateHtmlTemplate(templ, p_conType, p_port, p_isPDF, p_wkhtmltopdf, p_addToc);
 }
 
 QString VUtils::generateHtmlTemplate(const QString &p_template,
                                      MarkdownConverterType p_conType,
+                                     quint16 p_port,
                                      bool p_isPDF,
                                      bool p_wkhtmltopdf,
                                      bool p_addToc)
@@ -883,6 +885,8 @@ QString VUtils::generateHtmlTemplate(const QString &p_template,
     extraFile += "<script>var VOS = 'linux';</script>\n";
 #endif
 
+    extraFile += "<script>var VWebChannelPort = '" + QString::number(p_port) + "';</script>\n";
+
     QString htmlTemplate(p_template);
     htmlTemplate.replace(HtmlHolder::c_JSHolder, jsFile);
     if (!extraFile.isEmpty()) {
@@ -959,7 +963,7 @@ QString VUtils::generateExportHtmlTemplate(const QString &p_renderBg,
     return templ;
 }
 
-QString VUtils::generateMathJaxPreviewTemplate()
+QString VUtils::generateMathJaxPreviewTemplate(quint16 p_port)
 {
     QString mj = g_config->getMathjaxJavascript();
     QString templ = VNote::generateMathJaxPreviewTemplate();
@@ -999,6 +1003,8 @@ QString VUtils::generateMathJaxPreviewTemplate()
     extraFile += "<script type=\"text/javascript\" src=\"qrc" + VNote::c_plantUMLJsFile + "\"></script>\n" +
                  "<script type=\"text/javascript\" src=\"qrc" + VNote::c_plantUMLZopfliJsFile + "\"></script>\n" +
                  "<script>var VPlantUMLServer = '" + g_config->getPlantUMLServer() + "';</script>\n";
+
+    extraFile += "<script>var VWebChannelPort = '" + QString::number(p_port) + "';</script>\n";
 
     templ.replace(HtmlHolder::c_extraHolder, extraFile);
 
@@ -1439,11 +1445,10 @@ void VUtils::setDynamicProperty(QWidget *p_widget, const char *p_prop, bool p_va
     p_widget->style()->polish(p_widget);
 }
 
-QWebEngineView *VUtils::getWebEngineView(const QColor &p_background, QWidget *p_parent)
+QWebView *VUtils::getWebView(const QColor &p_background, QWidget *p_parent)
 {
-    QWebEngineView *viewer = new QWebEngineView(p_parent);
+    auto viewer = new QWebView(p_parent);
     VPreviewPage *page = new VPreviewPage(viewer);
-
     // Setting the background to Qt::transparent will force GrayScale antialiasing.
     if (p_background.isValid() && p_background != Qt::transparent) {
         page->setBackgroundColor(p_background);
@@ -1451,7 +1456,6 @@ QWebEngineView *VUtils::getWebEngineView(const QColor &p_background, QWidget *p_
 
     viewer->setPage(page);
     viewer->setZoomFactor(g_config->getWebZoomFactor());
-
     return viewer;
 }
 

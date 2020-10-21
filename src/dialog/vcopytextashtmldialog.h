@@ -6,7 +6,7 @@
 
 
 class QPlainTextEdit;
-class QWebEngineView;
+class QWebView;
 class QDialogButtonBox;
 class VWaitingWidget;
 class QLabel;
@@ -32,7 +32,7 @@ private:
 
     QLabel *m_htmlLabel;
 
-    QWebEngineView *m_htmlViewer;
+    QWebView *m_htmlViewer;
 
     QLabel *m_infoLabel;
 

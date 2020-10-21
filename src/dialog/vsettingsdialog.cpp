@@ -704,6 +704,7 @@ VReadEditTab::VReadEditTab(VSettingsDialog *p_dlg, QWidget *p_parent)
       m_settingsDlg(p_dlg)
 {
     m_readBox = new QGroupBox(tr("Read Mode (For Markdown Only)"));
+
     m_editBox = new QGroupBox(tr("Edit Mode"));
 
     // Web Zoom Factor.
@@ -1288,11 +1289,12 @@ VMarkdownTab::VMarkdownTab(QWidget *p_parent)
     m_plantUMLModeCombo = VUtils::getComboBox();
     m_plantUMLModeCombo->setToolTip(tr("Enable PlantUML support in Markdown"));
     m_plantUMLModeCombo->addItem(tr("Disabled"), PlantUMLMode::DisablePlantUML);
-    m_plantUMLModeCombo->addItem(tr("Online Service"), PlantUMLMode::OnlinePlantUML);
+    // m_plantUMLModeCombo->addItem(tr("Online Service"), PlantUMLMode::OnlinePlantUML);
     m_plantUMLModeCombo->addItem(tr("Local JAR"), PlantUMLMode::LocalPlantUML);
 
-    m_plantUMLServerEdit = new VLineEdit();
+    m_plantUMLServerEdit = new VLineEdit(this);
     m_plantUMLServerEdit->setToolTip(tr("Server address for online PlantUML"));
+    m_plantUMLServerEdit->setVisible(false);
 
     m_plantUMLJarEdit = new VLineEdit();
     m_plantUMLJarEdit->setToolTip(tr("Location to the PlantUML JAR executable for local PlantUML"));

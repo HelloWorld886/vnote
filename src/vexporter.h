@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QPageLayout>
 #include <QUrl>
-#include <QWebEngineDownloadItem>
+// #include <QWebEngineDownloadItem>
 #include <QStringList>
 
 #include "dialog/vexportdialog.h"
@@ -57,7 +57,7 @@ private slots:
 
     void handleLoadFinished(bool p_ok);
 
-    void handleDownloadRequested(QWebEngineDownloadItem *p_item);
+    // void handleDownloadRequested(QWebEngineDownloadItem *p_item);
 
 private:
     enum class ExportState
@@ -183,7 +183,7 @@ private:
     ExportState m_state;
 
     // Download state used for MIME HTML.
-    QWebEngineDownloadItem::DownloadState m_downloadState;
+    // QWebEngineDownloadItem::DownloadState m_downloadState;
 
     // Arguments for wkhtmltopdf.
     QStringList m_wkArgs;

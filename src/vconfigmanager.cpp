@@ -20,7 +20,7 @@ const QString VConfigManager::orgName = QString("vnote");
 
 const QString VConfigManager::appName = QString("vnote");
 
-const QString VConfigManager::c_version = QString("2.10");
+const QString VConfigManager::c_version = QString("2.7.56");
 
 const QString VConfigManager::c_dirConfigFile = QString("_vnote.json");
 
@@ -78,30 +78,6 @@ void VConfigManager::initialize()
     initCssStyles();
 
     initCodeBlockCssStyles();
-
-    m_githubPersonalAccessToken = getConfigFromSettings("global", "github_personal_access_token").toString();
-    m_githubReposName = getConfigFromSettings("global", "github_repos_name").toString();
-    m_githubUserName = getConfigFromSettings("global", "github_user_name").toString();
-    m_githubKeepImgScale = getConfigFromSettings("global", "github_keep_img_scale").toBool();
-    m_githubDoNotReplaceLink = getConfigFromSettings("global", "github_do_not_replace_link").toBool();
-
-    m_giteePersonalAccessToken = getConfigFromSettings("global", "gitee_personal_access_token").toString();
-    m_giteeReposName = getConfigFromSettings("global", "gitee_repos_name").toString();
-    m_giteeUserName = getConfigFromSettings("global", "gitee_user_name").toString();
-    m_giteeKeepImgScale = getConfigFromSettings("global", "gitee_keep_img_scale").toBool();
-    m_giteeDoNotReplaceLink = getConfigFromSettings("global", "gitee_do_not_replace_link").toBool();
-
-    m_wechatAppid = getConfigFromSettings("global", "wechat_appid").toString();
-    m_wechatSecret = getConfigFromSettings("global", "wechat_secret").toString();
-    m_markdown2WechatToolUrl = getConfigFromSettings("global", "wechat_markdown_to_wechat_tool_url").toString();
-    m_wechatKeepImgScale = getConfigFromSettings("global", "wechat_keep_img_scale").toBool();
-    m_wechatDoNotReplaceLink = getConfigFromSettings("global", "wechat_do_not_replace_link").toBool();
-
-    m_tencentAccessDomainName = getConfigFromSettings("global", "tencent_access_domain_name").toString();
-    m_tencentSecretId = getConfigFromSettings("global", "tencent_secret_id").toString();
-    m_tencentSecretKey = getConfigFromSettings("global", "tencent_secret_key").toString();
-    m_tencentKeepImgScale = getConfigFromSettings("global", "tencent_keep_img_scale").toBool();
-    m_tencentDoNotReplaceLink = getConfigFromSettings("global", "tencent_do_not_replace_link").toBool();
 
     m_theme = getConfigFromSettings("global", "theme").toString();
 
@@ -406,6 +382,8 @@ void VConfigManager::initEditorConfigs()
     m_enableSmartTable = getConfigFromSettings(section, "enable_smart_table").toBool();
 
     m_tableFormatIntervalMS = getConfigFromSettings(section, "table_format_interval").toInt();
+
+    m_pygmentPrg = getConfigFromSettings(section, "pygment_prg").toString();
 }
 
 void VConfigManager::initMarkdownConfigs()
@@ -926,7 +904,6 @@ const QString &VConfigManager::getCommonCssUrl() const
     if (cssPath.isEmpty()) {
         cssPath = QDir(getResourceConfigFolder()).filePath("common.css");
         if (m_versionChanged || !QFileInfo::exists(cssPath)) {
-            VUtils::deleteFile(cssPath);
             // Output the default one.
             if (!VUtils::copyFile(":/resources/common.css", cssPath, false)) {
                 cssPath = "qrc:/resources/common.css";
@@ -1531,8 +1508,6 @@ void VConfigManager::initThemes()
     file = ":/resources/themes/v_detorte/v_detorte.palette";
     m_themes.insert(VPalette::themeName(file), file);
     file = ":/resources/themes/v_simple/v_simple.palette";
-    m_themes.insert(VPalette::themeName(file), file);
-    file = ":/resources/themes/v_next/v_next.palette";
     m_themes.insert(VPalette::themeName(file), file);
 
     outputBuiltInThemes();

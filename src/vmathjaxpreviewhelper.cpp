@@ -1,11 +1,15 @@
 #include "vmathjaxpreviewhelper.h"
 
-#include <QWebEngineView>
+#include <QWebView>
 #include <QWebChannel>
+#include <QWebSocketServer>
 
 #include "utils/vutils.h"
 #include "vmathjaxwebdocument.h"
 #include "vconfigmanager.h"
+#include "websocketclientwrapper.h"
+#include "websockettransport.h"
+#include "vconstants.h"
 
 extern VConfigManager *g_config;
 
@@ -15,6 +19,7 @@ VMathJaxPreviewHelper::VMathJaxPreviewHelper(QWidget *p_parentWidget, QObject *p
       m_initialized(false),
       m_nextID(0),
       m_webView(NULL),
+      m_channel(nullptr),
       m_webReady(false)
 {
 }
@@ -30,8 +35,11 @@ void VMathJaxPreviewHelper::doInit()
 
     m_initialized = true;
 
-    m_webView = new QWebEngineView(m_parentWidget);
-    connect(m_webView, &QWebEngineView::loadFinished,
+    // FIXME.
+    return;
+
+    m_webView = new QWebView(m_parentWidget);
+    connect(m_webView, &QWebView::loadFinished,
             this, [this]() {
                 m_webReady = true;
                 for (auto const & it : m_pendingFunc) {
@@ -40,6 +48,7 @@ void VMathJaxPreviewHelper::doInit()
 
                 m_pendingFunc.clear();
             });
+    m_webView->page()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     m_webView->hide();
     m_webView->setFocusPolicy(Qt::NoFocus);
 
@@ -70,14 +79,13 @@ void VMathJaxPreviewHelper::doInit()
                 emit diagramPreviewResultReady(p_identifier, p_id, p_timeStamp, p_format, ba);
             });
 
-    QWebChannel *channel = new QWebChannel(m_webView);
-    channel->registerObject(QStringLiteral("content"), m_webDoc);
-    m_webView->page()->setWebChannel(channel);
+    quint16 port = WebSocketPort::PreviewHelperPort;
+    bindToChannel(port, "content", m_webDoc);
 
     // setHtml() will change focus if it is not disabled.
     m_webView->setEnabled(false);
     QUrl baseUrl(QUrl::fromLocalFile(g_config->getDocumentPathOrHomePath() + QDir::separator()));
-    m_webView->setHtml(VUtils::generateMathJaxPreviewTemplate(), baseUrl);
+    m_webView->setHtml(VUtils::generateMathJaxPreviewTemplate(port), baseUrl);
     m_webView->setEnabled(true);
 }
 
@@ -86,6 +94,9 @@ void VMathJaxPreviewHelper::previewMathJax(int p_identifier,
                                            TimeStamp p_timeStamp,
                                            const QString &p_text)
 {
+    emit mathjaxPreviewResultReady(p_identifier, p_id, p_timeStamp, "png", "");
+    return;
+
     init();
 
     if (!m_webReady) {
@@ -107,6 +118,9 @@ void VMathJaxPreviewHelper::previewMathJaxFromHtml(int p_identifier,
                                                    TimeStamp p_timeStamp,
                                                    const QString &p_html)
 {
+    emit mathjaxPreviewResultReady(p_identifier, p_id, p_timeStamp, "png", "");
+    return;
+
     init();
 
     if (!m_webReady) {
@@ -129,6 +143,9 @@ void VMathJaxPreviewHelper::previewDiagram(int p_identifier,
                                            const QString &p_lang,
                                            const QString &p_text)
 {
+    emit diagramPreviewResultReady(p_identifier, p_id, p_timeStamp, "png", "");
+    return;
+
     init();
 
     if (!m_webReady) {
@@ -143,4 +160,24 @@ void VMathJaxPreviewHelper::previewDiagram(int p_identifier,
     } else {
         m_webDoc->previewDiagram(p_identifier, p_id, p_timeStamp, p_lang, p_text);
     }
+}
+
+void VMathJaxPreviewHelper::bindToChannel(quint16 p_port, const QString &p_name, QObject *p_object)
+{
+    Q_ASSERT(!m_channel);
+    auto server = new QWebSocketServer("Web View for Preview",
+                                       QWebSocketServer::NonSecureMode,
+                                       this);
+    quint16 port = p_port;
+    if (!server->listen(QHostAddress::LocalHost, port)) {
+        qWarning() << "fail to open web socket server on port" << port;
+        delete server;
+        return;
+    }
+
+    auto clientWrapper = new WebSocketClientWrapper(server, this);
+    m_channel = new QWebChannel(this);
+    connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
+            m_channel, &QWebChannel::connectTo);
+    m_channel->registerObject(p_name, p_object);
 }

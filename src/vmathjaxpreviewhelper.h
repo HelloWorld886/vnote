@@ -7,7 +7,8 @@
 
 #include "vconstants.h"
 
-class QWebEngineView;
+class QWebView;
+class QWebChannel;
 class VMathJaxWebDocument;
 class QWidget;
 
@@ -61,13 +62,17 @@ private:
 
     void doInit();
 
+    void bindToChannel(quint16 p_port, const QString &p_name, QObject *p_object);
+
     QWidget *m_parentWidget;
 
     int m_initialized;
 
     int m_nextID;
 
-    QWebEngineView *m_webView;
+    QWebView *m_webView;
+
+    QWebChannel *m_channel;
 
     VMathJaxWebDocument *m_webDoc;
 

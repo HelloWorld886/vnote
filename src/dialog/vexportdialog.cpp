@@ -486,13 +486,17 @@ void VExportDialog::initUIFields(MarkdownConverterType p_renderer)
 
     m_embedImagesCB->setChecked(s_opt.m_htmlOpt.m_embedImages);
 
-    m_mimeHTMLCB->setChecked(s_opt.m_htmlOpt.m_mimeHTML);
+    // m_mimeHTMLCB->setChecked(s_opt.m_htmlOpt.m_mimeHTML);
+    m_mimeHTMLCB->setChecked(false);
+    m_mimeHTMLCB->setEnabled(false);
 
     m_outlinePanelCB->setChecked(s_opt.m_htmlOpt.m_outlinePanel);
 
     m_tableOfContentsCB->setChecked(s_opt.m_pdfOpt.m_enableTableOfContents);
 
-    m_wkhtmltopdfCB->setChecked(s_opt.m_pdfOpt.m_wkhtmltopdf);
+    // m_wkhtmltopdfCB->setChecked(s_opt.m_pdfOpt.m_wkhtmltopdf);
+    m_wkhtmltopdfCB->setChecked(true);
+    m_wkhtmltopdfCB->setEnabled(false);
 
     // wkhtmltopdf path.
     m_wkPathEdit->setText(g_config->getWkhtmltopdfPath());
@@ -582,7 +586,8 @@ void VExportDialog::startExport()
                          renderCodeBlockStyle,
                          m_subfolderCB->isChecked(),
                          ExportPDFOption(&m_pageLayout,
-                                         m_wkhtmltopdfCB->isChecked(),
+                                         // m_wkhtmltopdfCB->isChecked(),
+                                         true,
                                          QDir::toNativeSeparators(m_wkPathEdit->text()),
                                          m_wkBackgroundCB->isChecked(),
                                          m_tableOfContentsCB->isChecked(),

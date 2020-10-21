@@ -19,11 +19,11 @@ class VOrphanFile;
 class VNotebook;
 class QWidget;
 class QComboBox;
-class QWebEngineView;
 class QAction;
 class QTreeWidgetItem;
 class QFormLayout;
 class QTemporaryFile;
+class QWebView;
 
 #if !defined(V_ASSERT)
     #define V_ASSERT(cond) ((!(cond)) ? qt_assert(#cond, __FILE__, __LINE__) : qt_noop())
@@ -186,7 +186,7 @@ public:
     static DocType docTypeFromName(const QString &p_name);
 
     // Generate HTML template.
-    static QString generateHtmlTemplate(MarkdownConverterType p_conType);
+    static QString generateHtmlTemplate(MarkdownConverterType p_conType, quint16 p_port);
 
     // @p_renderBg is the background name.
     // @p_wkhtmltopdf: whether this template is used for wkhtmltopdf.
@@ -194,6 +194,7 @@ public:
                                         const QString &p_renderBg,
                                         const QString &p_renderStyle,
                                         const QString &p_renderCodeBlockStyle,
+                                        quint16 p_port,
                                         bool p_isPDF,
                                         bool p_wkhtmltopdf = false,
                                         bool p_addToc = false);
@@ -206,7 +207,7 @@ public:
     static QString generateSimpleHtmlTemplate(const QString &p_body);
 
     // Generate template for MathJax preview.
-    static QString generateMathJaxPreviewTemplate();
+    static QString generateMathJaxPreviewTemplate(quint16 p_port);
 
     // Get an available file name in @p_directory with base @p_baseFileName.
     // If there already exists a file named @p_baseFileName, try to add sequence
@@ -314,7 +315,7 @@ public:
     // Create and return a QComboBox.
     static QComboBox *getComboBox(QWidget *p_parent = nullptr);
 
-    static QWebEngineView *getWebEngineView(const QColor &p_background, QWidget *p_parent = nullptr);
+    static QWebView *getWebView(const QColor &p_background, QWidget *p_parent = nullptr);
 
     static void setDynamicProperty(QWidget *p_widget, const char *p_prop, bool p_val = true);
 
@@ -459,6 +460,7 @@ private:
 
     static QString generateHtmlTemplate(const QString &p_template,
                                         MarkdownConverterType p_conType,
+                                        quint16 p_port,
                                         bool p_isPDF = false,
                                         bool p_wkhtmltopdf = false,
                                         bool p_addToc = false);

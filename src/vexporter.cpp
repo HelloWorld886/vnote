@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QWidget>
 #include <QWebChannel>
-#include <QWebEngineProfile>
+// #include <QWebEngineProfile>
 #include <QRegExp>
 #include <QProcess>
 #include <QTemporaryDir>
@@ -51,6 +51,7 @@ void VExporter::prepareExport(const ExportOption &p_opt)
                                                   p_opt.m_renderBg,
                                                   p_opt.m_renderStyle,
                                                   p_opt.m_renderCodeBlockStyle,
+                                                  WebSocketPort::ExportWebViewPort,
                                                   isPdf,
                                                   isPdf && p_opt.m_pdfOpt.m_wkhtmltopdf,
                                                   extraToc);
@@ -217,16 +218,17 @@ void VExporter::initWebViewer(VFile *p_file, const ExportOption &p_opt)
     m_webViewer->setPage(page);
     connect(page, &VPreviewPage::loadFinished,
             this, &VExporter::handleLoadFinished);
+    /*
     connect(page->profile(), &QWebEngineProfile::downloadRequested,
             this, &VExporter::handleDownloadRequested);
+    */
 
     m_webDocument = new VDocument(p_file, m_webViewer);
     connect(m_webDocument, &VDocument::logicsFinished,
             this, &VExporter::handleLogicsFinished);
 
-    QWebChannel *channel = new QWebChannel(m_webViewer);
-    channel->registerObject(QStringLiteral("content"), m_webDocument);
-    page->setWebChannel(channel);
+    quint16 port = WebSocketPort::ExportWebViewPort;
+    m_webViewer->bindToChannel(port, QStringLiteral("content"), m_webDocument);
 
     // Need to generate HTML using Hoedown.
     if (p_opt.m_renderer == MarkdownConverterType::Hoedown) {
@@ -282,6 +284,7 @@ bool VExporter::exportToPDF(VWebView *p_webViewer,
                             const QString &p_filePath,
                             const QPageLayout &p_layout)
 {
+/*
     int pdfPrinted = 0;
     p_webViewer->page()->printToPdf([&, this](const QByteArray &p_result) {
         if (p_result.isEmpty() || this->m_state == ExportState::Cancelled) {
@@ -308,6 +311,8 @@ bool VExporter::exportToPDF(VWebView *p_webViewer,
     }
 
     return pdfPrinted == 1;
+*/
+    return false;
 }
 
 bool VExporter::exportToPDFViaWK(VDocument *p_webDocument,
@@ -335,7 +340,8 @@ bool VExporter::exportToPDFViaWK(VDocument *p_webDocument,
                     return;
                 }
 
-                QString htmlPath = tmpDir.filePath("vnote_tmp.html");
+                QDir dir(tmpDir.path());
+                QString htmlPath = dir.filePath("vnote_tmp.html");
                 QString title = p_webDocument->getFile()->getName();
                 title = QFileInfo(title).completeBaseName();
                 if (!outputToHTMLFile(htmlPath,
@@ -398,7 +404,8 @@ bool VExporter::exportToCustom(VDocument *p_webDocument,
                     return;
                 }
 
-                QString htmlPath = tmpDir.filePath("vnote_tmp.html");
+                QDir dir(tmpDir.path());
+                QString htmlPath = dir.filePath("vnote_tmp.html");
                 QString title = p_webDocument->getFile()->getName();
                 title = QFileInfo(title).completeBaseName();
                 if (!outputToHTMLFile(htmlPath,
@@ -746,6 +753,7 @@ bool VExporter::exportToMHTML(VWebView *p_webViewer,
                               const ExportHTMLOption &p_opt,
                               const QString &p_filePath)
 {
+/*
     Q_UNUSED(p_opt);
 
     m_downloadState = QWebEngineDownloadItem::DownloadRequested;
@@ -758,8 +766,11 @@ bool VExporter::exportToMHTML(VWebView *p_webViewer,
     }
 
     return m_downloadState == QWebEngineDownloadItem::DownloadCompleted;
+*/
+    return false;
 }
 
+/*
 void VExporter::handleDownloadRequested(QWebEngineDownloadItem *p_item)
 {
     if (p_item->savePageFormat() == QWebEngineDownloadItem::MimeHtmlSaveFormat) {
@@ -769,6 +780,7 @@ void VExporter::handleDownloadRequested(QWebEngineDownloadItem *p_item)
                 });
     }
 }
+*/
 
 static QString combineArgs(QStringList &p_args)
 {
@@ -1032,10 +1044,8 @@ bool VExporter::outputToHTMLFile(const QString &p_file,
 
     // Delete empty resource folder.
     QDir dir(resFolderPath);
-    if (dir.isEmpty()) {
-        dir.cdUp();
-        dir.rmdir(resFolder);
-    }
+    dir.cdUp();
+    dir.rmdir(resFolder);
 
     return true;
 }

@@ -1,8 +1,8 @@
 #include <QtWidgets>
-#include <QWebChannel>
 #include <QFileInfo>
 #include <QCoreApplication>
-#include <QWebEngineProfile>
+// #include <QWebEngineProfile>
+
 #include "vmdtab.h"
 #include "vdocument.h"
 #include "vnote.h"
@@ -31,12 +31,14 @@ extern VMainWindow *g_mainWin;
 
 extern VConfigManager *g_config;
 
+QSet<quint16> VMdTab::s_usedPorts;
 
 VMdTab::VMdTab(VFile *p_file, VEditArea *p_editArea,
                OpenFileMode p_mode, QWidget *p_parent)
     : VEditTab(p_file, p_editArea, p_parent),
       m_editor(NULL),
       m_webViewer(NULL),
+      m_port(getNextPort()),
       m_document(NULL),
       m_mdConType(g_config->getMdConverterType()),
       m_enableHeadingSequence(false),
@@ -103,6 +105,11 @@ VMdTab::VMdTab(VFile *p_file, VEditArea *p_editArea,
                     showFileReadMode();
                 }
             });
+}
+
+VMdTab::~VMdTab()
+{
+    releasePort(m_port);
 }
 
 void VMdTab::setupUI()
@@ -443,6 +450,7 @@ void VMdTab::discardAndRead()
 void VMdTab::setupMarkdownViewer()
 {
     m_webViewer = new VWebView(m_file, this);
+
     connect(m_webViewer, &VWebView::editNote,
             this, &VMdTab::editFile);
     connect(m_webViewer, &VWebView::requestSavePage,
@@ -455,20 +463,24 @@ void VMdTab::setupMarkdownViewer()
     VPreviewPage *page = new VPreviewPage(m_webViewer);
     m_webViewer->setPage(page);
     m_webViewer->setZoomFactor(g_config->getWebZoomFactor());
+    /*
     connect(page->profile(), &QWebEngineProfile::downloadRequested,
             this, &VMdTab::handleDownloadRequested);
     connect(page, &QWebEnginePage::linkHovered,
             this, &VMdTab::statusMessage);
+    */
 
     // Avoid white flash before loading content.
     // Setting Qt::transparent will force GrayScale antialias rendering.
     page->setBackgroundColor(g_config->getBaseBackground());
 
+    page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+
     m_document = new VDocument(m_file, m_webViewer);
     m_documentID = m_document->registerIdentifier();
 
-    QWebChannel *channel = new QWebChannel(m_webViewer);
-    channel->registerObject(QStringLiteral("content"), m_document);
+    m_webViewer->bindToChannel(m_port, QStringLiteral("content"), m_document);
+
     connect(m_document, &VDocument::tocChanged,
             this, &VMdTab::updateOutlineFromHtml);
     connect(m_document, SIGNAL(headerChanged(const QString &)),
@@ -517,9 +529,7 @@ void VMdTab::setupMarkdownViewer()
                 emit statusUpdated(info);
             });
 
-    page->setWebChannel(channel);
-
-    m_webViewer->setHtml(VUtils::generateHtmlTemplate(m_mdConType),
+    m_webViewer->setHtml(VUtils::generateHtmlTemplate(m_mdConType, m_port),
                          m_file->getBaseUrl());
 
     m_splitter->addWidget(m_webViewer);
@@ -790,13 +800,13 @@ void VMdTab::findTextInWebView(const QString &p_text, uint p_options,
 {
     V_ASSERT(m_webViewer);
 
-    QWebEnginePage::FindFlags flags;
+    QWebPage::FindFlags flags;
     if (p_options & FindOption::CaseSensitive) {
-        flags |= QWebEnginePage::FindCaseSensitively;
+        flags |= QWebPage::FindCaseSensitively;
     }
 
     if (!p_forward) {
-        flags |= QWebEnginePage::FindBackward;
+        flags |= QWebPage::FindBackward;
     }
 
     m_webViewer->findText(p_text, flags);
@@ -826,8 +836,7 @@ void VMdTab::clearSearchedWordHighlight()
 
 void VMdTab::handleWebKeyPressed(int p_key, bool p_ctrl, bool p_shift, bool p_meta)
 {
-    V_ASSERT(m_webViewer);
-
+    Q_ASSERT(m_webViewer);
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
     bool macCtrl = p_meta;
 #else
@@ -920,6 +929,7 @@ void VMdTab::zoom(bool p_zoomIn, qreal p_step)
 
 void VMdTab::zoomWebPage(bool p_zoomIn, qreal p_step)
 {
+    Q_ASSERT(false);
     V_ASSERT(m_webViewer);
 
     qreal curFactor = m_webViewer->zoomFactor();
@@ -1309,7 +1319,7 @@ void VMdTab::handleFileOrDirectoryChange(bool p_isFile, UpdateAction p_act)
 {
     // Reload the web view with new base URL.
     m_headerFromEditMode = m_currentHeader;
-    m_webViewer->setHtml(VUtils::generateHtmlTemplate(m_mdConType),
+    m_webViewer->setHtml(VUtils::generateHtmlTemplate(m_mdConType, m_port),
                          m_file->getBaseUrl());
 
     if (m_editor) {
@@ -1496,6 +1506,7 @@ bool VMdTab::executeVimCommandInWebView(const QString &p_cmd)
     return validCommand;
 }
 
+/*
 void VMdTab::handleDownloadRequested(QWebEngineDownloadItem *p_item)
 {
     connect(p_item, &QWebEngineDownloadItem::stateChanged,
@@ -1516,9 +1527,12 @@ void VMdTab::handleDownloadRequested(QWebEngineDownloadItem *p_item)
                 }
             });
 }
+*/
 
 void VMdTab::handleSavePageRequested()
 {
+    /*
+    Q_ASSERT(false);
     static QString lastPath = g_config->getDocumentPathOrHomePath();
 
     QStringList filters;
@@ -1546,7 +1560,8 @@ void VMdTab::handleSavePageRequested()
 
     emit statusMessage(tr("Saving page to %1").arg(fileName));
 
-    m_webViewer->page()->save(fileName, format);
+    // m_webViewer->page()->save(fileName, format);
+    */
 }
 
 void VMdTab::handleUploadImageToGithubRequested()
@@ -1774,4 +1789,20 @@ bool VMdTab::expandRestorePreviewArea()
 bool VMdTab::previewExpanded() const
 {
     return (m_mode == Mode::EditPreview) && !m_editor->isVisible();
+}
+
+quint16 VMdTab::getNextPort()
+{
+    quint16 port = WebSocketPort::LastSpecialPort;
+    while (s_usedPorts.find(port) != s_usedPorts.end()) {
+        ++port;
+    }
+
+    s_usedPorts.insert(port);
+    return port;
+}
+
+void VMdTab::releasePort(quint16 p_port)
+{
+    s_usedPorts.remove(p_port);
 }
