@@ -9,8 +9,30 @@
 
 #include "configmgr.h"
 #include "mainconfig.h"
+#include "notebookmgr.h"
+#include "vnotex.h"
+#include "versioncontroller/iversioncontrollerfactory.h"
 
 using namespace vnotex;
+
+bool SessionConfig::VersionControlItem::operator==(const VersionControlItem &p_other) const
+{
+    return m_name == p_other.m_name;
+}
+
+void SessionConfig::VersionControlItem::fromJson(const QJsonObject &p_jobj)
+{
+    m_name = p_jobj[QStringLiteral("name")].toString();
+}
+
+QJsonObject SessionConfig::VersionControlItem::toJson() const
+{
+    QJsonObject jobj;
+
+    jobj[QStringLiteral("name")] = m_name;
+
+    return jobj;
+}
 
 bool SessionConfig::NotebookItem::operator==(const NotebookItem &p_other) const
 {
@@ -24,6 +46,13 @@ void SessionConfig::NotebookItem::fromJson(const QJsonObject &p_jobj)
     m_type = p_jobj[QStringLiteral("type")].toString();
     m_rootFolderPath = p_jobj[QStringLiteral("root_folder")].toString();
     m_backend = p_jobj[QStringLiteral("backend")].toString();
+    auto versionControl = p_jobj[QStringLiteral("version_control")].toObject();
+    const QString &name = versionControl[QStringLiteral("name")].toString();
+
+    const NotebookMgr &mgr = VNoteX::getInst().getNotebookMgr();
+    auto factory = mgr.getVersionControllerFactory(name);
+    m_versionControl = factory->createVersionControlItem();
+    m_versionControl.fromJson(versionControl);
 }
 
 QJsonObject SessionConfig::NotebookItem::toJson() const
@@ -33,6 +62,7 @@ QJsonObject SessionConfig::NotebookItem::toJson() const
     jobj[QStringLiteral("type")] = m_type;
     jobj[QStringLiteral("root_folder")] = m_rootFolderPath;
     jobj[QStringLiteral("backend")] = m_backend;
+    jobj[QStringLiteral("version_control")] = m_versionControl.toJson();
 
     return jobj;
 }

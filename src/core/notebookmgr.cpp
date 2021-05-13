@@ -12,6 +12,7 @@
 #include "exception.h"
 #include "configmgr.h"
 #include <utils/pathutils.h>
+#include "versioncontroller/gitversioncontrollerfactory.h"
 
 using namespace vnotex;
 
@@ -39,6 +40,9 @@ void NotebookMgr::initVersionControllerServer()
     // Dummy Version Controller.
     auto dummyFactory = QSharedPointer<DummyVersionControllerFactory>::create();
     m_versionControllerServer->registerItem(dummyFactory->getName(), dummyFactory);
+
+    auto gitFactory = QSharedPointer<GitVersionControllerFactory>::create();
+    m_versionControllerServer->registerItem(gitFactory->getName(), gitFactory);
 }
 
 void NotebookMgr::initConfigMgrServer()
@@ -77,6 +81,11 @@ QSharedPointer<INotebookFactory> NotebookMgr::getBundleNotebookFactory() const
 QList<QSharedPointer<INotebookFactory>> NotebookMgr::getAllNotebookFactories() const
 {
     return m_notebookServer->getAllItems();
+}
+
+QSharedPointer<IVersionControllerFactory> NotebookMgr::getVersionControllerFactory(const QString &p_controlName) const
+{
+    return m_versionControllerServer->getItem(p_controlName);
 }
 
 QList<QSharedPointer<IVersionControllerFactory>> NotebookMgr::getAllVersionControllerFactories() const
@@ -202,6 +211,7 @@ static SessionConfig::NotebookItem notebookToSessionConfig(const QSharedPointer<
     item.m_type = p_notebook->getType();
     item.m_rootFolderPath = p_notebook->getRootFolderPath();
     item.m_backend = p_notebook->getBackend()->getName();
+    item.m_versionControl = p_notebook->getVersionController()->getName();
     return item;
 }
 

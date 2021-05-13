@@ -34,6 +34,8 @@ namespace vnotex
 
         QList<QSharedPointer<INotebookFactory>> getAllNotebookFactories() const;
 
+        QSharedPointer<IVersionControllerFactory> getVersionControllerFactory(const QString &p_controlName) const;
+
         QList<QSharedPointer<IVersionControllerFactory>> getAllVersionControllerFactories() const;
 
         QList<QSharedPointer<INotebookConfigMgrFactory>> getAllNotebookConfigMgrFactories() const;

@@ -24,6 +24,11 @@ namespace vnotex
         virtual QString getDisplayName() const = 0;
 
         virtual QString getDescription() const = 0;
+
+        // data
+//        virtual void loadCustomData() = 0;
+
+//        virtual void saveCustomData() = 0;
     };
 } // ns vnotex
 

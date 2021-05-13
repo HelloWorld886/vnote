@@ -14,6 +14,7 @@
 #include "markdowneditorpage.h"
 #include "appearancepage.h"
 #include "themepage.h"
+#include "gitsyncpage.h"
 
 using namespace vnotex;
 
@@ -105,6 +106,12 @@ void SettingsDialog::setupPages()
             auto subPage = new MarkdownEditorPage(this);
             addSubPage(subPage, item);
         }
+    }
+
+    //Git Sync
+    {
+        auto page = new GitSyncPage(this);
+        addPage(page);
     }
 
     setChangesUnsaved(false);

@@ -24,7 +24,7 @@ using namespace vnotex;
 NotebookInfoWidget::NotebookInfoWidget(NotebookInfoWidget::Mode p_mode, QWidget *p_parent)
     : QWidget(p_parent),
       m_mode(p_mode)
-{
+{    
     setupUI();
 
     setMode(p_mode);
@@ -39,6 +39,8 @@ void NotebookInfoWidget::setupUI()
 
     auto advancedInfoGroup = setupAdvancedInfoGroupBox(this);
     mainLayout->addWidget(advancedInfoGroup);
+
+    setLayout(mainLayout);
 }
 
 QGroupBox *NotebookInfoWidget::setupBasicInfoGroupBox(QWidget *p_parent)
@@ -141,12 +143,14 @@ QGroupBox *NotebookInfoWidget::setupAdvancedInfoGroupBox(QWidget *p_parent)
     {
         setupVersionControllerComboBox(box);
         mainLayout->addRow(tr("Version control:"), m_versionControllerComboBox);
+        setupVersionControllerSubUI(mainLayout, box);
     }
 
     {
         setupBackendComboBox(box);
         mainLayout->addRow(tr("Backend:"), m_backendComboBox);
     }
+    box->setLayout(mainLayout);
 
     return box;
 }
@@ -181,6 +185,16 @@ void NotebookInfoWidget::setupVersionControllerComboBox(QWidget *p_parent)
     }
 
     m_versionControllerComboBox->setWhatsThis(whatsThis);
+}
+
+void NotebookInfoWidget::setupVersionControllerSubUI(QFormLayout *mainLayout, QWidget *p_parent)
+{
+    m_versionControllerLayout = WidgetsFactory::createFormLayout(p_parent);
+    mainLayout->addRow(m_versionControllerLayout);
+
+    m_versionControllerComboBox->setCurrentIndex(0);
+    versioControllerIndexChanged(0);
+    connect(m_versionControllerComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &NotebookInfoWidget::versioControllerIndexChanged);
 }
 
 void NotebookInfoWidget::setupBackendComboBox(QWidget *p_parent)
@@ -230,6 +244,28 @@ void NotebookInfoWidget::setNotebook(const Notebook *p_notebook)
         setCurrentComboBoxByData(m_versionControllerComboBox, m_notebook->getVersionController()->getName());
         setCurrentComboBoxByData(m_backendComboBox, m_notebook->getBackend()->getName());
     }
+}
+
+void NotebookInfoWidget::versioControllerIndexChanged(int index)
+{
+    Q_ASSERT(index >= 0);
+    auto &notebookMgr = VNoteX::getInst().getNotebookMgr();
+    auto factories = notebookMgr.getAllVersionControllerFactories();
+    Q_ASSERT(index < factories.count());
+    auto factory = factories.at(index);
+
+    if(m_versionControllerLayout)
+    {
+        const int rowCount = m_versionControllerLayout->rowCount();
+        for (int i = rowCount - 1; i >= 0; --i)
+        {
+            m_versionControllerLayout->removeRow(i);
+        }
+
+        factory->setupNotebookInfoUI(m_versionControllerLayout, m_versionControllerLayout->parentWidget());
+    }
+
+    updateGeometry();
 }
 
 const Notebook *NotebookInfoWidget::getNotebook() const

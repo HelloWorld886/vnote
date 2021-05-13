@@ -14,6 +14,19 @@ namespace vnotex
     class SessionConfig : public IConfig
     {
     public:
+        struct VersionControlItem
+        {
+            VersionControlItem() = default;
+
+            bool operator==(const VersionControlItem &p_other) const;
+
+            virtual void fromJson(const QJsonObject &p_jobj);
+
+            virtual QJsonObject toJson() const;
+
+            QString m_name;
+        };
+
         struct NotebookItem
         {
             NotebookItem() = default;
@@ -27,6 +40,7 @@ namespace vnotex
             QString m_type;
             QString m_rootFolderPath;
             QString m_backend;
+            VersionControlItem m_versionControl;
         };
 
         struct MainWindowStateGeometry

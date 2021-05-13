@@ -63,6 +63,9 @@ namespace vnotex
 
         static const QStringList &getAvailableLocales();
 
+        int getSyncTimeout() const;
+        void setSyncTimeout(int syncTimeout);
+
     private:
         void loadShortcuts(const QJsonObject &p_app, const QJsonObject &p_user);
 
@@ -84,7 +87,10 @@ namespace vnotex
 
         QStringList m_externalNodeExcludePatterns;
 
+        int m_syncTimeout = 120;
+
         static QStringList s_availableLocales;
+
     };
 } // ns vnotex
 

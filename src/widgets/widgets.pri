@@ -18,6 +18,7 @@ SOURCES += \
     $$PWD/dialogs/settings/appearancepage.cpp \
     $$PWD/dialogs/settings/editorpage.cpp \
     $$PWD/dialogs/settings/generalpage.cpp \
+    $$PWD/dialogs/settings/gitsyncpage.cpp \
     $$PWD/dialogs/settings/markdowneditorpage.cpp \
     $$PWD/dialogs/settings/settingspage.cpp \
     $$PWD/dialogs/settings/settingsdialog.cpp \
@@ -108,6 +109,7 @@ HEADERS += \
     $$PWD/dialogs/settings/appearancepage.h \
     $$PWD/dialogs/settings/editorpage.h \
     $$PWD/dialogs/settings/generalpage.h \
+    $$PWD/dialogs/settings/gitsyncpage.h \
     $$PWD/dialogs/settings/markdowneditorpage.h \
     $$PWD/dialogs/settings/settingspage.h \
     $$PWD/dialogs/settings/settingsdialog.h \

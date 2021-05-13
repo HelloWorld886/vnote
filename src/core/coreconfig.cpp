@@ -48,6 +48,11 @@ void CoreConfig::init(const QJsonObject &p_app,
         m_toolBarIconSize = 16;
     }
 
+    m_syncTimeout = READINT(QStringLiteral("sync_timeout"));
+    if (m_syncTimeout <= 0) {
+        m_syncTimeout = 120;
+    }
+
     loadNoteManagement(appObj, userObj);
 }
 
@@ -58,6 +63,7 @@ QJsonObject CoreConfig::toJson() const
     obj[QStringLiteral("locale")] = m_locale;
     obj[QStringLiteral("shortcuts")] = saveShortcuts();
     obj[QStringLiteral("toolbar_icon_size")] = m_toolBarIconSize;
+    obj[QStringLiteral("sync_timeout")] = m_syncTimeout;
     return obj;
 }
 
@@ -125,6 +131,17 @@ QJsonObject CoreConfig::saveShortcuts() const
         obj[metaEnum.key(i)] = m_shortcuts[i];
     }
     return obj;
+}
+
+int CoreConfig::getSyncTimeout() const
+{
+    return m_syncTimeout;
+}
+
+void CoreConfig::setSyncTimeout(int syncTimeout)
+{
+    Q_ASSERT(syncTimeout > 0);
+    updateConfig(m_syncTimeout, syncTimeout, this);
 }
 
 const QString &CoreConfig::getShortcut(Shortcut p_shortcut) const

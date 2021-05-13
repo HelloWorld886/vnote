@@ -7,6 +7,7 @@ class QComboBox;
 class QPushButton;
 class QLineEdit;
 class QGroupBox;
+class QFormLayout;
 
 namespace vnotex
 {
@@ -49,6 +50,7 @@ namespace vnotex
 
     public slots:
         void setNotebook(const Notebook *p_notebook);
+        void versioControllerIndexChanged(int index);
 
     signals:
         // Give caller a chance to change the name according to the root folder.
@@ -75,6 +77,8 @@ namespace vnotex
         void setupConfigMgrComboBox(QWidget *p_parent = nullptr);
 
         void setupVersionControllerComboBox(QWidget *p_parent = nullptr);
+
+        void setupVersionControllerSubUI(QFormLayout *mainLayout, QWidget *p_parent = nullptr);
 
         void setupBackendComboBox(QWidget *p_parent = nullptr);
 
@@ -106,6 +110,8 @@ namespace vnotex
 
         QLineEdit *m_rootFolderPathLineEdit = nullptr;
         QPushButton *m_rootFolderPathBrowseButton = nullptr;
+
+        QFormLayout *m_versionControllerLayout = nullptr;
     };
 } // ns vnotex
 
