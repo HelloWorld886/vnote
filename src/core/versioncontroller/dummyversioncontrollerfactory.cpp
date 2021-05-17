@@ -25,11 +25,6 @@ QString DummyVersionControllerFactory::getDescription() const
     return QObject::tr("Disable version control");
 }
 
-void DummyVersionControllerFactory::setupNotebookInfoUI(QFormLayout *mainLayout, QWidget *p_parent)
-{
-
-}
-
 QSharedPointer<IVersionController> DummyVersionControllerFactory::createVersionController()
 {
     return QSharedPointer<DummyVersionController>::create(getName(),

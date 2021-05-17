@@ -35,7 +35,8 @@ Notebook::Notebook(const NotebookParameters &p_paras,
       m_createdTimeUtc(p_paras.m_createdTimeUtc),
       m_backend(p_paras.m_notebookBackend),
       m_versionController(p_paras.m_versionController),
-      m_configMgr(p_paras.m_notebookConfigMgr)
+      m_configMgr(p_paras.m_notebookConfigMgr),
+      m_synchronizer(p_paras.m_synchronizer)
 {
     if (m_imageFolder.isEmpty()) {
         m_imageFolder = c_defaultImageFolder;
@@ -146,6 +147,11 @@ const QSharedPointer<IVersionController> &Notebook::getVersionController() const
 const QSharedPointer<INotebookConfigMgr> &Notebook::getConfigMgr() const
 {
     return m_configMgr;
+}
+
+const QSharedPointer<ISynchronizer> &Notebook::getSynchronizer() const
+{
+    return m_synchronizer;
 }
 
 const QSharedPointer<Node> &Notebook::getRootNode() const

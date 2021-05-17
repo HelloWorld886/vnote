@@ -137,7 +137,8 @@ bool NewNotebookFromFolderDialog::newNotebookFromFolder()
                                                               QDateTime::currentDateTimeUtc(),
                                                               m_infoWidget->getBackend(),
                                                               m_infoWidget->getVersionController(),
-                                                              m_infoWidget->getConfigMgr());
+                                                              m_infoWidget->getConfigMgr(),
+                                                              m_infoWidget->getSynchronizer());
     paras->m_ensureEmptyRootFolder = false;
     QSharedPointer<Notebook> nb;
     try {

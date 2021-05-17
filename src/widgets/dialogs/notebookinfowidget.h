@@ -12,6 +12,7 @@ class QFormLayout;
 namespace vnotex
 {
     class Notebook;
+    class ISynchronizerLayout;
 
     class NotebookInfoWidget : public QWidget
     {
@@ -42,6 +43,8 @@ namespace vnotex
 
         QString getBackend() const;
 
+        QString getSynchronizer() const;
+
         void clear(bool p_skipRootFolder = false, bool p_skipBackend = false);
 
         void setMode(Mode p_mode);
@@ -50,7 +53,7 @@ namespace vnotex
 
     public slots:
         void setNotebook(const Notebook *p_notebook);
-        void versioControllerIndexChanged(int index);
+        void synchronizerIndexChanged(int index);
 
     signals:
         // Give caller a chance to change the name according to the root folder.
@@ -78,9 +81,11 @@ namespace vnotex
 
         void setupVersionControllerComboBox(QWidget *p_parent = nullptr);
 
-        void setupVersionControllerSubUI(QFormLayout *mainLayout, QWidget *p_parent = nullptr);
-
         void setupBackendComboBox(QWidget *p_parent = nullptr);
+
+        void setupSynchronizerComboBox(QWidget *p_parent = nullptr);
+
+        void setupSynchronizerSubLayout(QWidget *p_parent = nullptr);
 
         QLineEdit *getDescriptionLineEdit() const;
 
@@ -111,7 +116,9 @@ namespace vnotex
         QLineEdit *m_rootFolderPathLineEdit = nullptr;
         QPushButton *m_rootFolderPathBrowseButton = nullptr;
 
-        QFormLayout *m_versionControllerLayout = nullptr;
+        QComboBox *m_synchronizerComboBox = nullptr;
+        QFormLayout *m_synchronizerSubLayout = nullptr;
+        ISynchronizerLayout *m_synchronizerLayout = nullptr;
     };
 } // ns vnotex
 

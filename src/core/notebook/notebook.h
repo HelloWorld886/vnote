@@ -15,6 +15,7 @@ namespace vnotex
     class IVersionController;
     class INotebookConfigMgr;
     struct NodeParameters;
+    class ISynchronizer;
 
     // Base class of notebook.
     class Notebook : public QObject
@@ -60,6 +61,8 @@ namespace vnotex
         const QSharedPointer<IVersionController> &getVersionController() const;
 
         const QSharedPointer<INotebookConfigMgr> &getConfigMgr() const;
+
+        const QSharedPointer<ISynchronizer> &getSynchronizer() const;
 
         const QSharedPointer<Node> &getRootNode() const;
 
@@ -175,6 +178,8 @@ namespace vnotex
 
         // Config manager to read/wirte config files.
         QSharedPointer<INotebookConfigMgr> m_configMgr;
+
+        QSharedPointer<ISynchronizer> m_synchronizer;
 
         QSharedPointer<Node> m_root;
     };

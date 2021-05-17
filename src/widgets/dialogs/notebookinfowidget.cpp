@@ -18,6 +18,8 @@
 #include <utils/pathutils.h>
 #include "exception.h"
 #include <utils/widgetutils.h>
+#include "synchronizer/isynchronizerfactory.h"
+#include "synchronizer/isynchronizerlayout.h"
 
 using namespace vnotex;
 
@@ -143,13 +145,21 @@ QGroupBox *NotebookInfoWidget::setupAdvancedInfoGroupBox(QWidget *p_parent)
     {
         setupVersionControllerComboBox(box);
         mainLayout->addRow(tr("Version control:"), m_versionControllerComboBox);
-        setupVersionControllerSubUI(mainLayout, box);
     }
 
     {
         setupBackendComboBox(box);
         mainLayout->addRow(tr("Backend:"), m_backendComboBox);
     }
+
+    {
+        setupSynchronizerComboBox(box);
+        mainLayout->addRow(tr("Synchronizer:"), m_synchronizerComboBox);
+
+        setupSynchronizerSubLayout(box);
+        mainLayout->addRow(m_synchronizerSubLayout);
+    }
+
     box->setLayout(mainLayout);
 
     return box;
@@ -187,15 +197,6 @@ void NotebookInfoWidget::setupVersionControllerComboBox(QWidget *p_parent)
     m_versionControllerComboBox->setWhatsThis(whatsThis);
 }
 
-void NotebookInfoWidget::setupVersionControllerSubUI(QFormLayout *mainLayout, QWidget *p_parent)
-{
-    m_versionControllerLayout = WidgetsFactory::createFormLayout(p_parent);
-    mainLayout->addRow(m_versionControllerLayout);
-
-    m_versionControllerComboBox->setCurrentIndex(0);
-    versioControllerIndexChanged(0);
-    connect(m_versionControllerComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &NotebookInfoWidget::versioControllerIndexChanged);
-}
 
 void NotebookInfoWidget::setupBackendComboBox(QWidget *p_parent)
 {
@@ -214,6 +215,30 @@ void NotebookInfoWidget::setupBackendComboBox(QWidget *p_parent)
 
     connect(m_backendComboBox, QOverload<int>::of(&QComboBox::activated),
             this, &NotebookInfoWidget::notebookBackendEdited);
+}
+
+void NotebookInfoWidget::setupSynchronizerComboBox(QWidget *p_parent)
+{
+    m_synchronizerComboBox = WidgetsFactory::createComboBox(p_parent);
+
+    QString whatsThis = tr("Specify synchronizer of notebook.<br/>");
+    auto &notebookMgr = VNoteX::getInst().getNotebookMgr();
+    for (auto &factory : notebookMgr.getAllSynchronizerFactories()) {
+        m_synchronizerComboBox->addItem(factory->getDisplayName(), factory->getName());
+        whatsThis += tr("<b>%1</b>: %2<br/>").arg(factory->getDisplayName(),
+                                                  factory->getDescription());
+    }
+
+    m_synchronizerComboBox->setWhatsThis(whatsThis);
+}
+
+void NotebookInfoWidget::setupSynchronizerSubLayout(QWidget *p_parent)
+{
+    m_synchronizerSubLayout = WidgetsFactory::createFormLayout(p_parent);
+
+    m_synchronizerComboBox->setCurrentIndex(0);
+    synchronizerIndexChanged(0);
+    connect(m_synchronizerComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &NotebookInfoWidget::synchronizerIndexChanged);
 }
 
 static void setCurrentComboBoxByData(QComboBox *p_box, const QVariant &p_data)
@@ -246,26 +271,28 @@ void NotebookInfoWidget::setNotebook(const Notebook *p_notebook)
     }
 }
 
-void NotebookInfoWidget::versioControllerIndexChanged(int index)
+void NotebookInfoWidget::synchronizerIndexChanged(int index)
 {
     Q_ASSERT(index >= 0);
     auto &notebookMgr = VNoteX::getInst().getNotebookMgr();
-    auto factories = notebookMgr.getAllVersionControllerFactories();
+    auto factories = notebookMgr.getAllSynchronizerFactories();
     Q_ASSERT(index < factories.count());
-    auto factory = factories.at(index);
+    auto &factory = factories.at(index);
 
-    if(m_versionControllerLayout)
+    if(m_synchronizerSubLayout)
     {
-        const int rowCount = m_versionControllerLayout->rowCount();
-        for (int i = rowCount - 1; i >= 0; --i)
+        if (m_synchronizerLayout)
         {
-            m_versionControllerLayout->removeRow(i);
+            m_synchronizerSubLayout->removeRow(m_synchronizerLayout);
+            m_synchronizerLayout = nullptr;
         }
 
-        factory->setupNotebookInfoUI(m_versionControllerLayout, m_versionControllerLayout->parentWidget());
+        m_synchronizerLayout = factory->createSynchronizerLayout(m_synchronizerSubLayout->parentWidget());
+        if(m_synchronizerLayout)
+        {
+            m_synchronizerSubLayout->addRow(m_synchronizerLayout);
+        }
     }
-
-    updateGeometry();
 }
 
 const Notebook *NotebookInfoWidget::getNotebook() const
@@ -384,6 +411,11 @@ QString NotebookInfoWidget::getVersionController() const
 QString NotebookInfoWidget::getBackend() const
 {
     return getBackendComboBox()->currentData().toString();
+}
+
+QString NotebookInfoWidget::getSynchronizer() const
+{
+    return m_synchronizerComboBox->currentData().toString();
 }
 
 void NotebookInfoWidget::clear(bool p_skipRootFolder, bool p_skipBackend)

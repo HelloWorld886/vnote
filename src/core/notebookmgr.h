@@ -21,6 +21,8 @@ namespace vnotex
     class INotebookBackendFactory;
     class INotebookFactory;
     class NotebookParameters;
+    class ISynchronizer;
+    class ISynchronizerFactory;
 
     class NotebookMgr : public QObject
     {
@@ -34,13 +36,15 @@ namespace vnotex
 
         QList<QSharedPointer<INotebookFactory>> getAllNotebookFactories() const;
 
-        QSharedPointer<IVersionControllerFactory> getVersionControllerFactory(const QString &p_controlName) const;
-
         QList<QSharedPointer<IVersionControllerFactory>> getAllVersionControllerFactories() const;
 
         QList<QSharedPointer<INotebookConfigMgrFactory>> getAllNotebookConfigMgrFactories() const;
 
         QList<QSharedPointer<INotebookBackendFactory>> getAllNotebookBackendFactories() const;
+
+        QList<QSharedPointer<ISynchronizerFactory>> getAllSynchronizerFactories() const;
+
+        QSharedPointer<ISynchronizerFactory> getSynchronizerFactory(const QString &p_name) const;
 
         QSharedPointer<INotebookBackend> createNotebookBackend(const QString &p_backendName,
                                                                const QString &p_rootFolderPath) const;
@@ -49,6 +53,8 @@ namespace vnotex
 
         QSharedPointer<INotebookConfigMgr> createNotebookConfigMgr(const QString &p_mgrName,
                                                                    const QSharedPointer<INotebookBackend> &p_backend) const;
+
+        QSharedPointer<ISynchronizer> createSynchronizer(const QString &p_name) const;
 
         void loadNotebooks();
 
@@ -92,6 +98,8 @@ namespace vnotex
 
         void initNotebookServer();
 
+        void initSynchronizerServer();
+
         void saveNotebooksToConfig() const;
         void readNotebooksFromConfig();
 
@@ -110,6 +118,8 @@ namespace vnotex
         QSharedPointer<NameBasedServer<INotebookBackendFactory>> m_backendServer;
 
         QSharedPointer<NameBasedServer<INotebookFactory>> m_notebookServer;
+
+        QSharedPointer<NameBasedServer<ISynchronizerFactory>> m_synchronizerServer;
 
         QVector<QSharedPointer<Notebook>> m_notebooks;
 

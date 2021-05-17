@@ -7,6 +7,7 @@
 
 #include "bundlenotebookconfigmgr.h"
 #include "global.h"
+#include "synchronizer/synchronizeritem.h"
 
 namespace vnotex
 {
@@ -43,6 +44,8 @@ namespace vnotex
 
         QString m_notebookConfigMgr;
 
+        SynchronizerItem m_synchronizer;
+
         ID m_nextNodeId = BundleNotebookConfigMgr::RootNodeId + 1;
 
         static const QString c_version;
@@ -60,6 +63,8 @@ namespace vnotex
         static const QString c_versionController;
 
         static const QString c_configMgr;
+
+        static const QString c_synchronizer;
 
         static const QString c_nextNodeId;
     };

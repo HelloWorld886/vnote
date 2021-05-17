@@ -10,6 +10,8 @@ include($$PWD/notebook/notebook.pri)
 
 include($$PWD/buffer/buffer.pri)
 
+include($$PWD/synchronizer/synchronizer.pri)
+
 SOURCES += \
     $$PWD/buffermgr.cpp \
     $$PWD/configmgr.cpp \

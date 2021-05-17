@@ -9,36 +9,19 @@
 
 #include "configmgr.h"
 #include "mainconfig.h"
-#include "notebookmgr.h"
+#include "synchronizer/synchronizeritem.h"
+#include "synchronizer/isynchronizerfactory.h"
 #include "vnotex.h"
-#include "versioncontroller/iversioncontrollerfactory.h"
+#include "notebookmgr.h"
 
 using namespace vnotex;
-
-bool SessionConfig::VersionControlItem::operator==(const VersionControlItem &p_other) const
-{
-    return m_name == p_other.m_name;
-}
-
-void SessionConfig::VersionControlItem::fromJson(const QJsonObject &p_jobj)
-{
-    m_name = p_jobj[QStringLiteral("name")].toString();
-}
-
-QJsonObject SessionConfig::VersionControlItem::toJson() const
-{
-    QJsonObject jobj;
-
-    jobj[QStringLiteral("name")] = m_name;
-
-    return jobj;
-}
 
 bool SessionConfig::NotebookItem::operator==(const NotebookItem &p_other) const
 {
     return m_type == p_other.m_type
            && m_rootFolderPath == p_other.m_rootFolderPath
-           && m_backend == p_other.m_backend;
+           && m_backend == p_other.m_backend
+            && m_synchronzierItem == p_other.m_synchronzierItem;
 }
 
 void SessionConfig::NotebookItem::fromJson(const QJsonObject &p_jobj)
@@ -46,13 +29,16 @@ void SessionConfig::NotebookItem::fromJson(const QJsonObject &p_jobj)
     m_type = p_jobj[QStringLiteral("type")].toString();
     m_rootFolderPath = p_jobj[QStringLiteral("root_folder")].toString();
     m_backend = p_jobj[QStringLiteral("backend")].toString();
-    auto versionControl = p_jobj[QStringLiteral("version_control")].toObject();
-    const QString &name = versionControl[QStringLiteral("name")].toString();
 
-    const NotebookMgr &mgr = VNoteX::getInst().getNotebookMgr();
-    auto factory = mgr.getVersionControllerFactory(name);
-    m_versionControl = factory->createVersionControlItem();
-    m_versionControl.fromJson(versionControl);
+    const QJsonObject &synchronizerObj = p_jobj[QStringLiteral("synchronizer")].toObject();
+    const QString &synchronizerName = synchronizerObj[QStringLiteral("name")].toString();
+
+    const NotebookMgr &notebookMgr = VNoteX::getInst().getNotebookMgr();
+    auto factory = notebookMgr.getSynchronizerFactory(synchronizerName);
+    Q_ASSERT(factory);
+
+    m_synchronzierItem = factory->createEmptySynchronzerItem();
+    m_synchronzierItem.fromJson(synchronizerObj);
 }
 
 QJsonObject SessionConfig::NotebookItem::toJson() const
@@ -62,7 +48,7 @@ QJsonObject SessionConfig::NotebookItem::toJson() const
     jobj[QStringLiteral("type")] = m_type;
     jobj[QStringLiteral("root_folder")] = m_rootFolderPath;
     jobj[QStringLiteral("backend")] = m_backend;
-    jobj[QStringLiteral("version_control")] = m_versionControl.toJson();
+    jobj[QStringLiteral("synchronizer")] = m_synchronzierItem.toJson();
 
     return jobj;
 }

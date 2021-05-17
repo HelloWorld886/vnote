@@ -16,7 +16,8 @@ QSharedPointer<NotebookParameters> NotebookParameters::createNotebookParameters(
         const QDateTime &p_createdTimeUtc,
         const QString &p_backend,
         const QString &p_versionController,
-        const QString &p_configMgr)
+        const QString &p_configMgr,
+        const QString &p_synchronizer)
 {
     auto backend = p_mgr.createNotebookBackend(p_backend, p_rootFolderPath);
     return createNotebookParameters(p_mgr,
@@ -30,7 +31,8 @@ QSharedPointer<NotebookParameters> NotebookParameters::createNotebookParameters(
                                     p_attachmentFolder,
                                     p_createdTimeUtc,
                                     p_versionController,
-                                    p_configMgr);
+                                    p_configMgr,
+                                    p_synchronizer);
 }
 
 QSharedPointer<NotebookParameters> NotebookParameters::createNotebookParameters(
@@ -45,7 +47,8 @@ QSharedPointer<NotebookParameters> NotebookParameters::createNotebookParameters(
                 const QString &p_attachmentFolder,
                 const QDateTime &p_createdTimeUtc,
                 const QString &p_versionController,
-                const QString &p_configMgr)
+                const QString &p_configMgr,
+                const QString &p_synchronizer)
 {
     auto paras = QSharedPointer<NotebookParameters>::create();
     paras->m_type = p_type;
@@ -60,5 +63,7 @@ QSharedPointer<NotebookParameters> NotebookParameters::createNotebookParameters(
     paras->m_versionController = p_mgr.createVersionController(p_versionController);
     paras->m_notebookConfigMgr = p_mgr.createNotebookConfigMgr(p_configMgr,
                                                                paras->m_notebookBackend);
+    paras->m_synchronizer = p_mgr.createSynchronizer(p_synchronizer);
+    Q_ASSERT(paras->m_synchronizer);
     return paras;
 }

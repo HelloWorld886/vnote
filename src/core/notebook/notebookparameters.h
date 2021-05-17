@@ -11,6 +11,7 @@ namespace vnotex
     class INotebookBackend;
     class IVersionController;
     class INotebookConfigMgr;
+    class ISynchronizer;
 
     // Used to new a notebook.
     class NotebookParameters
@@ -30,7 +31,8 @@ namespace vnotex
                 const QDateTime &p_createdTimeUtc,
                 const QString &p_backend,
                 const QString &p_versionController,
-                const QString &p_configMgr);
+                const QString &p_configMgr,
+                const QString &p_synchronizer);
 
         static QSharedPointer<NotebookParameters> createNotebookParameters(
                 const NotebookMgr &p_mgr,
@@ -44,7 +46,8 @@ namespace vnotex
                 const QString &p_attachmentFolder,
                 const QDateTime &p_createdTimeUtc,
                 const QString &p_versionController,
-                const QString &p_configMgr);
+                const QString &p_configMgr,
+                const QString &p_synchronizer);
 
         QString m_type;
         QString m_name;
@@ -62,6 +65,7 @@ namespace vnotex
         QSharedPointer<INotebookBackend> m_notebookBackend;
         QSharedPointer<IVersionController> m_versionController;
         QSharedPointer<INotebookConfigMgr> m_notebookConfigMgr;
+        QSharedPointer<ISynchronizer> m_synchronizer;
 
         bool m_ensureEmptyRootFolder = true;
     };

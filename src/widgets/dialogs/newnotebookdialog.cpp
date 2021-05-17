@@ -132,7 +132,8 @@ bool NewNotebookDialog::newNotebook()
                                                               QDateTime::currentDateTimeUtc(),
                                                               m_infoWidget->getBackend(),
                                                               m_infoWidget->getVersionController(),
-                                                              m_infoWidget->getConfigMgr());
+                                                              m_infoWidget->getConfigMgr(),
+                                                              m_infoWidget->getSynchronizer());
     try {
         notebookMgr.newNotebook(paras);
     } catch (Exception &p_e) {

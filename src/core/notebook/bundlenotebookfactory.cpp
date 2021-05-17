@@ -76,7 +76,8 @@ QSharedPointer<Notebook> BundleNotebookFactory::createNotebook(const NotebookMgr
                                                               nbConfig->m_attachmentFolder,
                                                               nbConfig->m_createdTimeUtc,
                                                               nbConfig->m_versionController,
-                                                              nbConfig->m_notebookConfigMgr);
+                                                              nbConfig->m_notebookConfigMgr,
+                                                              nbConfig->m_synchronizer.m_name);
     checkParameters(*paras);
     auto notebook = QSharedPointer<BundleNotebook>::create(*paras);
     return notebook;

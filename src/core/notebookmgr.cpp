@@ -12,7 +12,9 @@
 #include "exception.h"
 #include "configmgr.h"
 #include <utils/pathutils.h>
-#include "versioncontroller/gitversioncontrollerfactory.h"
+#include "synchronizer/isynchronizer.h"
+#include "synchronizer/isynchronizerfactory.h"
+#include "synchronizer/localsync/localsyncfactory.h"
 
 using namespace vnotex;
 
@@ -31,6 +33,8 @@ void NotebookMgr::init()
     initBackendServer();
 
     initNotebookServer();
+
+    initSynchronizerServer();
 }
 
 void NotebookMgr::initVersionControllerServer()
@@ -40,9 +44,6 @@ void NotebookMgr::initVersionControllerServer()
     // Dummy Version Controller.
     auto dummyFactory = QSharedPointer<DummyVersionControllerFactory>::create();
     m_versionControllerServer->registerItem(dummyFactory->getName(), dummyFactory);
-
-    auto gitFactory = QSharedPointer<GitVersionControllerFactory>::create();
-    m_versionControllerServer->registerItem(gitFactory->getName(), gitFactory);
 }
 
 void NotebookMgr::initConfigMgrServer()
@@ -73,6 +74,15 @@ void NotebookMgr::initNotebookServer()
     m_notebookServer->registerItem(bundleFacotry->getName(), bundleFacotry);
 }
 
+void NotebookMgr::initSynchronizerServer()
+{
+    m_synchronizerServer.reset(new NameBasedServer<ISynchronizerFactory>);
+
+    //registe synchronizer
+    auto localSynchronizerFactory = QSharedPointer<LocalSyncFactory>::create();
+    m_synchronizerServer->registerItem(localSynchronizerFactory->getName(), localSynchronizerFactory);
+}
+
 QSharedPointer<INotebookFactory> NotebookMgr::getBundleNotebookFactory() const
 {
     return m_notebookServer->getItem(QStringLiteral("bundle.vnotex"));
@@ -81,11 +91,6 @@ QSharedPointer<INotebookFactory> NotebookMgr::getBundleNotebookFactory() const
 QList<QSharedPointer<INotebookFactory>> NotebookMgr::getAllNotebookFactories() const
 {
     return m_notebookServer->getAllItems();
-}
-
-QSharedPointer<IVersionControllerFactory> NotebookMgr::getVersionControllerFactory(const QString &p_controlName) const
-{
-    return m_versionControllerServer->getItem(p_controlName);
 }
 
 QList<QSharedPointer<IVersionControllerFactory>> NotebookMgr::getAllVersionControllerFactories() const
@@ -101,6 +106,16 @@ QList<QSharedPointer<INotebookConfigMgrFactory>> NotebookMgr::getAllNotebookConf
 QList<QSharedPointer<INotebookBackendFactory>> NotebookMgr::getAllNotebookBackendFactories() const
 {
     return m_backendServer->getAllItems();
+}
+
+QList<QSharedPointer<ISynchronizerFactory> > NotebookMgr::getAllSynchronizerFactories() const
+{
+    return m_synchronizerServer->getAllItems();
+}
+
+QSharedPointer<ISynchronizerFactory> NotebookMgr::getSynchronizerFactory(const QString &p_name) const
+{
+    return m_synchronizerServer->getItem(p_name);
 }
 
 QSharedPointer<INotebookBackend> NotebookMgr::createNotebookBackend(const QString &p_backendName,
@@ -139,6 +154,19 @@ QSharedPointer<INotebookConfigMgr> NotebookMgr::createNotebookConfigMgr(const QS
     } else {
         Exception::throwOne(Exception::Type::InvalidArgument,
                             QString("failed to find notebook config manager factory %1").arg(p_mgrName));
+    }
+
+    return nullptr;
+}
+
+QSharedPointer<ISynchronizer> NotebookMgr::createSynchronizer(const QString &p_name) const
+{
+    auto factory = m_synchronizerServer->getItem(p_name);
+    if (factory) {
+        return factory->createSynchronizer();
+    } else {
+        Exception::throwOne(Exception::Type::InvalidArgument,
+                            QString("failed to find sychronizer factory %1").arg(p_name));
     }
 
     return nullptr;
@@ -211,7 +239,7 @@ static SessionConfig::NotebookItem notebookToSessionConfig(const QSharedPointer<
     item.m_type = p_notebook->getType();
     item.m_rootFolderPath = p_notebook->getRootFolderPath();
     item.m_backend = p_notebook->getBackend()->getName();
-    item.m_versionControl = p_notebook->getVersionController()->getName();
+    item.m_synchronzierItem = p_notebook->getSynchronizer()->toSynchronizerItem();
     return item;
 }
 

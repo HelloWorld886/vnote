@@ -3,6 +3,7 @@
 #include <notebook/notebookparameters.h>
 #include <notebook/notebook.h>
 #include <versioncontroller/iversioncontroller.h>
+#include <synchronizer/isynchronizer.h>
 #include <utils/utils.h>
 #include "exception.h"
 #include "global.h"
@@ -27,6 +28,8 @@ const QString NotebookConfig::c_configMgr = "config_mgr";
 
 const QString NotebookConfig::c_nextNodeId = "next_node_id";
 
+const QString NotebookConfig::c_synchronizer = "synchronizer";
+
 QSharedPointer<NotebookConfig> NotebookConfig::fromNotebookParameters(const QString &p_version,
                                                                       const NotebookParameters &p_paras)
 {
@@ -40,6 +43,7 @@ QSharedPointer<NotebookConfig> NotebookConfig::fromNotebookParameters(const QStr
     config->m_createdTimeUtc = p_paras.m_createdTimeUtc;
     config->m_versionController = p_paras.m_versionController->getName();
     config->m_notebookConfigMgr = p_paras.m_notebookConfigMgr->getName();
+    config->m_synchronizer = p_paras.m_synchronizer->toSynchronizerItem();
 
     return config;
 }
@@ -57,6 +61,7 @@ QJsonObject NotebookConfig::toJson() const
     jobj[NotebookConfig::c_versionController] = m_versionController;
     jobj[NotebookConfig::c_configMgr] = m_notebookConfigMgr;
     jobj[NotebookConfig::c_nextNodeId] = QString::number(m_nextNodeId);
+    jobj[NotebookConfig::c_synchronizer] = m_synchronizer.toJson();
 
     return jobj;
 }
@@ -67,7 +72,8 @@ void NotebookConfig::fromJson(const QJsonObject &p_jobj)
         || !p_jobj.contains(NotebookConfig::c_name)
         || !p_jobj.contains(NotebookConfig::c_createdTimeUtc)
         || !p_jobj.contains(NotebookConfig::c_versionController)
-        || !p_jobj.contains(NotebookConfig::c_configMgr)) {
+        || !p_jobj.contains(NotebookConfig::c_configMgr)
+        || !p_jobj.contains(NotebookConfig::c_synchronizer)) {
         Exception::throwOne(Exception::Type::InvalidArgument,
                             QString("fail to read notebook configuration from JSON (%1)").arg(QJsonObjectToString(p_jobj)));
         return;
@@ -81,6 +87,7 @@ void NotebookConfig::fromJson(const QJsonObject &p_jobj)
     m_createdTimeUtc = Utils::dateTimeFromStringUniform(p_jobj[NotebookConfig::c_createdTimeUtc].toString());
     m_versionController = p_jobj[NotebookConfig::c_versionController].toString();
     m_notebookConfigMgr = p_jobj[NotebookConfig::c_configMgr].toString();
+    m_synchronizer.fromJson(p_jobj[NotebookConfig::c_synchronizer].toObject());
 
     {
         auto nextNodeIdStr = p_jobj[NotebookConfig::c_nextNodeId].toString();
@@ -106,6 +113,7 @@ QSharedPointer<NotebookConfig> NotebookConfig::fromNotebook(const QString &p_ver
     config->m_versionController = p_notebook->getVersionController()->getName();
     config->m_notebookConfigMgr = p_notebook->getConfigMgr()->getName();
     config->m_nextNodeId = p_notebook->getNextNodeId();
+    config->m_synchronizer = p_notebook->getSynchronizer()->toSynchronizerItem();
 
     return config;
 }
