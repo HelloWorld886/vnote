@@ -13,14 +13,12 @@ LocalSyncFactory::~LocalSyncFactory()
 
 QSharedPointer<ISynchronizer> LocalSyncFactory::createSynchronizer() const
 {
-    return QSharedPointer<LocalSync>::create(getName(),
-                                             getDisplayName(),
-                                             getDescription());
+    return QSharedPointer<LocalSync>::create(getName());
 }
 
-SynchronizerItem LocalSyncFactory::createEmptySynchronzerItem() const
+QSharedPointer<SynchronizerItem> LocalSyncFactory::createEmptySynchronzerItem() const
 {
-    return SynchronizerItem();
+    return QSharedPointer<SynchronizerItem>::create();
 }
 
 ISynchronizerLayout *LocalSyncFactory::createSynchronizerLayout(QWidget *p_parent) const
@@ -31,7 +29,7 @@ ISynchronizerLayout *LocalSyncFactory::createSynchronizerLayout(QWidget *p_paren
 
 QString LocalSyncFactory::getName() const
 {
-    return QStringLiteral("local.vnotex");
+    return QStringLiteral("local_sync.vnotex");
 }
 
 QString LocalSyncFactory::getDescription() const

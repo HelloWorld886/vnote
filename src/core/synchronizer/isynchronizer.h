@@ -2,23 +2,24 @@
 #define ISYNCHRONIZER_H
 #include <QString>
 #include <QSharedPointer>
-#include "synchronizer/synchronizeritem.h"
 
 namespace vnotex
 {
+    class ISynchronizerLayout;
+    struct SynchronizerItem;
+
     class ISynchronizer
     {
     public:
-        explicit ISynchronizer(){}
+        explicit ISynchronizer(const QString &name) : m_name(name){}
         virtual ~ISynchronizer(){}
 
-        virtual QString getName() const = 0;
+        virtual QSharedPointer<SynchronizerItem> toSynchronizerItem() const = 0;
 
-        virtual QString getDisplayName() const = 0;
+        virtual void setDataByLayout(ISynchronizerLayout *layout) = 0;
 
-        virtual QString getDescription() const = 0;
-
-        virtual SynchronizerItem toSynchronizerItem() const = 0;
+    protected:
+        QString m_name;
     };
 }
 

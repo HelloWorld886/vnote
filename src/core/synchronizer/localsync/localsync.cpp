@@ -3,10 +3,8 @@
 using namespace vnotex;
 
 
-LocalSync::LocalSync(const QString &p_name,
-                     const QString &p_displayName,
-                     const QString &p_description)
-    :m_info(p_name, p_displayName, p_description)
+LocalSync::LocalSync(const QString &name)
+    :ISynchronizer(name)
 {
 
 }
@@ -16,24 +14,15 @@ LocalSync::~LocalSync()
 
 }
 
-QString LocalSync::getName() const
+QSharedPointer<SynchronizerItem> LocalSync::toSynchronizerItem() const
 {
-    return m_info.m_name;
-}
-
-QString LocalSync::getDescription() const
-{
-    return m_info.m_description;
-}
-
-QString LocalSync::getDisplayName() const
-{
-   return m_info.m_displayName;
-}
-
-SynchronizerItem LocalSync::toSynchronizerItem() const
-{
-    SynchronizerItem item;
-    item.m_name = getName();
+     QSharedPointer<SynchronizerItem> item = QSharedPointer<SynchronizerItem>::create();
+    item->m_name = m_name;
     return item;
+}
+
+void LocalSync::setDataByLayout(ISynchronizerLayout *layout)
+{
+    Q_ASSERT(!layout);
+    // to do nothing
 }

@@ -8,21 +8,12 @@ namespace vnotex
     class LocalSync : public ISynchronizer
     {
     public:
-        LocalSync(const QString &p_name,
-                  const QString &p_displayName,
-                  const QString &p_description);
+        LocalSync(const QString &name);
         ~LocalSync();
 
-        QString getName() const override;
+        QSharedPointer<SynchronizerItem> toSynchronizerItem() const override;
 
-        QString getDescription() const override;
-
-        QString getDisplayName() const override;
-
-        SynchronizerItem toSynchronizerItem() const override;
-
-    private:
-        Info m_info;
+        void setDataByLayout(ISynchronizerLayout *layout) override;
     };
 }
 

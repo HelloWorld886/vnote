@@ -8,10 +8,10 @@
 
 #include <export/exportdata.h>
 #include <search/searchdata.h>
-#include "synchronizer/synchronizeritem.h"
 
 namespace vnotex
 {
+struct SynchronizerItem;
     class SessionConfig : public IConfig
     {
     public:
@@ -28,7 +28,7 @@ namespace vnotex
             QString m_type;
             QString m_rootFolderPath;
             QString m_backend;
-            SynchronizerItem m_synchronzierItem;
+            QSharedPointer<SynchronizerItem> m_synchronzierItem;
         };
 
         struct MainWindowStateGeometry

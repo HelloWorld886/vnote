@@ -239,7 +239,7 @@ static SessionConfig::NotebookItem notebookToSessionConfig(const QSharedPointer<
     item.m_type = p_notebook->getType();
     item.m_rootFolderPath = p_notebook->getRootFolderPath();
     item.m_backend = p_notebook->getBackend()->getName();
-    item.m_synchronzierItem = p_notebook->getSynchronizer()->toSynchronizerItem();
+    item.m_synchronzier = p_notebook->getSynchronizer()->toSynchronizerItem();
     return item;
 }
 

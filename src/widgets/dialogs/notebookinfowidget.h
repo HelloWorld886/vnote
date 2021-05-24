@@ -45,6 +45,8 @@ namespace vnotex
 
         QString getSynchronizer() const;
 
+        ISynchronizerLayout *getSynchronizerLayout() const;
+
         void clear(bool p_skipRootFolder = false, bool p_skipBackend = false);
 
         void setMode(Mode p_mode);
@@ -54,7 +56,7 @@ namespace vnotex
     public slots:
         void setNotebook(const Notebook *p_notebook);
         void synchronizerIndexChanged(int index);
-
+        void synchronizerValidityChanged(bool valid);
     signals:
         // Give caller a chance to change the name according to the root folder.
         void rootFolderEdited();
@@ -63,6 +65,8 @@ namespace vnotex
         void basicInfoEdited();
 
         void notebookBackendEdited();
+
+        void synchronizerInfoChanged(bool valid);
 
     private:
         void setupUI();

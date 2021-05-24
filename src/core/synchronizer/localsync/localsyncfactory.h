@@ -11,7 +11,7 @@ namespace vnotex {
 
         QSharedPointer<ISynchronizer> createSynchronizer() const override;
 
-        SynchronizerItem createEmptySynchronzerItem() const override;
+         QSharedPointer<SynchronizerItem> createEmptySynchronzerItem() const override;
 
         ISynchronizerLayout *createSynchronizerLayout(QWidget *p_parent) const override;
 

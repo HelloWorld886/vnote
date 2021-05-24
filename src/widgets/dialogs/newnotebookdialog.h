@@ -6,6 +6,7 @@
 namespace vnotex
 {
     class NotebookInfoWidget;
+    class NotebookParameters;
 
     class NewNotebookDialog : public ScrollDialog
     {
@@ -24,6 +25,7 @@ namespace vnotex
 
     private slots:
         void validateInputs();
+        void validateSynchronizerInfo(bool valid);
 
     private:
         void setupUI();
@@ -31,6 +33,8 @@ namespace vnotex
         void setupNotebookInfoWidget(QWidget *p_parent = nullptr);
 
         bool validateNameInput(QString &p_msg);
+
+        void setSynchronizerData(const QSharedPointer<NotebookParameters> &parameters);
 
         // Create a new notebook.
         // Return true if succeeded.

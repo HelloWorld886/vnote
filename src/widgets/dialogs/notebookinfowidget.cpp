@@ -283,6 +283,8 @@ void NotebookInfoWidget::synchronizerIndexChanged(int index)
     {
         if (m_synchronizerLayout)
         {
+            disconnect(m_synchronizerLayout,&ISynchronizerLayout::validityChanged, this,
+                       &NotebookInfoWidget::synchronizerValidityChanged);
             m_synchronizerSubLayout->removeRow(m_synchronizerLayout);
             m_synchronizerLayout = nullptr;
         }
@@ -290,9 +292,22 @@ void NotebookInfoWidget::synchronizerIndexChanged(int index)
         m_synchronizerLayout = factory->createSynchronizerLayout(m_synchronizerSubLayout->parentWidget());
         if(m_synchronizerLayout)
         {
+            connect(m_synchronizerLayout,&ISynchronizerLayout::validityChanged, this,
+                       &NotebookInfoWidget::synchronizerValidityChanged);
             m_synchronizerSubLayout->addRow(m_synchronizerLayout);
         }
     }
+
+    if (m_synchronizerLayout)
+    {
+        emit synchronizerInfoChanged(false);
+        m_synchronizerLayout->triggerCheckValidity();
+    }
+}
+
+void NotebookInfoWidget::synchronizerValidityChanged(bool valid)
+{
+    emit synchronizerInfoChanged(valid);
 }
 
 const Notebook *NotebookInfoWidget::getNotebook() const
@@ -416,6 +431,11 @@ QString NotebookInfoWidget::getBackend() const
 QString NotebookInfoWidget::getSynchronizer() const
 {
     return m_synchronizerComboBox->currentData().toString();
+}
+
+ISynchronizerLayout *NotebookInfoWidget::getSynchronizerLayout() const
+{
+    return m_synchronizerLayout;
 }
 
 void NotebookInfoWidget::clear(bool p_skipRootFolder, bool p_skipBackend)

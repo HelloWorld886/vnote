@@ -12,6 +12,7 @@
 #include <utils/utils.h>
 #include "exception.h"
 #include "notebookinfowidget.h"
+#include "synchronizer/isynchronizer.h"
 
 using namespace vnotex;
 
@@ -41,6 +42,8 @@ void NewNotebookDialog::setupNotebookInfoWidget(QWidget *p_parent)
             this, &NewNotebookDialog::handleRootFolderPathChanged);
     connect(m_infoWidget, &NotebookInfoWidget::basicInfoEdited,
             this, &NewNotebookDialog::validateInputs);
+    connect(m_infoWidget, &NotebookInfoWidget::synchronizerInfoChanged,
+            this, &NewNotebookDialog::validateSynchronizerInfo);
 
     {
         auto whatsThis = tr("<br/>Both absolute and relative paths are supported. ~ and environment variable are not supported now.");
@@ -59,6 +62,11 @@ void NewNotebookDialog::validateInputs()
 
     setInformationText(msg, valid ? ScrollDialog::InformationLevel::Info
                                   : ScrollDialog::InformationLevel::Error);
+    setButtonEnabled(QDialogButtonBox::Ok, valid);
+}
+
+void NewNotebookDialog::validateSynchronizerInfo(bool valid)
+{
     setButtonEnabled(QDialogButtonBox::Ok, valid);
 }
 
@@ -134,6 +142,9 @@ bool NewNotebookDialog::newNotebook()
                                                               m_infoWidget->getVersionController(),
                                                               m_infoWidget->getConfigMgr(),
                                                               m_infoWidget->getSynchronizer());
+
+    setSynchronizerData(paras);
+
     try {
         notebookMgr.newNotebook(paras);
     } catch (Exception &p_e) {
@@ -145,6 +156,17 @@ bool NewNotebookDialog::newNotebook()
     }
 
     return true;
+}
+
+void NewNotebookDialog::setSynchronizerData(const QSharedPointer<NotebookParameters> &parameters)
+{
+    Q_ASSERT(parameters->m_synchronizer);
+
+    auto layout = m_infoWidget->getSynchronizerLayout();
+
+    Q_ASSERT(layout);
+
+    parameters->m_synchronizer->setDataByLayout(layout);
 }
 
 void NewNotebookDialog::handleRootFolderPathChanged()

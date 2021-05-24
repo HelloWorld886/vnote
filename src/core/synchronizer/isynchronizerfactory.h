@@ -1,12 +1,12 @@
 #ifndef ISYNCHRONIZERFACTORY_H
 #define ISYNCHRONIZERFACTORY_H
 #include <QSharedPointer>
-#include "synchronizer/synchronizeritem.h"
 
 namespace vnotex
 {
     class ISynchronizer;
     class ISynchronizerLayout;
+    struct SynchronizerItem;
 
     class ISynchronizerFactory
     {
@@ -24,7 +24,7 @@ namespace vnotex
 
         virtual ISynchronizerLayout *createSynchronizerLayout(QWidget *p_parent) const = 0;
 
-        virtual SynchronizerItem createEmptySynchronzerItem() const = 0;
+        virtual QSharedPointer<SynchronizerItem> createEmptySynchronzerItem() const = 0;
     };
 }
 

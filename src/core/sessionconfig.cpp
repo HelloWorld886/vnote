@@ -38,7 +38,7 @@ void SessionConfig::NotebookItem::fromJson(const QJsonObject &p_jobj)
     Q_ASSERT(factory);
 
     m_synchronzierItem = factory->createEmptySynchronzerItem();
-    m_synchronzierItem.fromJson(synchronizerObj);
+    m_synchronzierItem->fromJson(synchronizerObj);
 }
 
 QJsonObject SessionConfig::NotebookItem::toJson() const
@@ -48,7 +48,7 @@ QJsonObject SessionConfig::NotebookItem::toJson() const
     jobj[QStringLiteral("type")] = m_type;
     jobj[QStringLiteral("root_folder")] = m_rootFolderPath;
     jobj[QStringLiteral("backend")] = m_backend;
-    jobj[QStringLiteral("synchronizer")] = m_synchronzierItem.toJson();
+    jobj[QStringLiteral("synchronizer")] = m_synchronzierItem->toJson();
 
     return jobj;
 }

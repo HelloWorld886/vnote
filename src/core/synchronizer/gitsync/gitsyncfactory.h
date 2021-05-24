@@ -10,7 +10,7 @@ namespace vnotex
         GitSyncFactory();
         virtual ~GitSyncFactory();
 
-        SynchronizerItem createEmptySynchronzerItem() const override;
+        QSharedPointer<SynchronizerItem> createEmptySynchronzerItem() const override;
 
         QSharedPointer<ISynchronizer> createSynchronizer() const override;
 
